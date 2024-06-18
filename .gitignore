@@ -1,0 +1,17 @@
+# IntelliJ
+*.iml
+.idea/
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+# Common
+target/
+.DS_Store
+
+# Misc
+test.flv
+test_enhanced.flv
+src/main/java/co/casterlabs/flv4j/Test.java
