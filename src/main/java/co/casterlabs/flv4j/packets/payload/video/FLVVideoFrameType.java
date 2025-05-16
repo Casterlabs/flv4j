@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.packets.payload.video;
 
 import lombok.AllArgsConstructor;
 
+//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
 @AllArgsConstructor
 public enum FLVVideoFrameType {
     KEY_FRAME(1),

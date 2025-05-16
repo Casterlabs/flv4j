@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.packets.payload.audio;
 
 import lombok.AllArgsConstructor;
 
+//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=10
 @AllArgsConstructor
 public enum FLVAudioFormat {
     LPCM(0),
