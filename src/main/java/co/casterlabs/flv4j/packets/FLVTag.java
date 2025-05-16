@@ -87,7 +87,7 @@ public record FLVTag(
         FLVPayload payload = switch (packetType) {
             case 8 -> FLVAudioPayload.from(payloadBytes);
             case 9 -> FLVVideoPayload.from(payloadBytes);
-//            case 18 -> new FLVScriptTag(payloadBytes); // TODO
+//            case 18 -> new FLVScriptPayload(payloadBytes); // TODO
             default -> new FLVUnknownPayload(payloadBytes);
         };
 
