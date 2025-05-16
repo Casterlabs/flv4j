@@ -5,11 +5,6 @@ public record FLVUnknownPayload(
 ) implements FLVPayload {
 
     @Override
-    public final String toString() {
-        return "FLVUnknownPayload[isSequenceHeader=false]";
-    }
-
-    @Override
     public boolean isSequenceHeader() {
         return false;
     }
@@ -20,8 +15,8 @@ public record FLVUnknownPayload(
     }
 
     @Override
-    public FLVUnknownPayload clone() {
-        return new FLVUnknownPayload(this.raw);
+    public final String toString() {
+        return "FLVUnknownPayload[isSequenceHeader=false]";
     }
 
 }
