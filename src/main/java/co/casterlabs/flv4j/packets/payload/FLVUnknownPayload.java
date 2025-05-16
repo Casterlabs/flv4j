@@ -16,7 +16,10 @@ public record FLVUnknownPayload(
 
     @Override
     public final String toString() {
-        return "FLVUnknownPayload[isSequenceHeader=false]";
+        return String.format(
+            "FLVUnknownPayload[isSequenceHeader=?, size=%d]",
+            this.size()
+        );
     }
 
 }

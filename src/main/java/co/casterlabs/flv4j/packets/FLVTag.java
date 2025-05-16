@@ -6,6 +6,7 @@ import java.io.InputStream;
 import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.FLVSerializable;
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.FLVUnknownPayload;
 import co.casterlabs.flv4j.packets.payload.audio.FLVAudioPayload;
@@ -20,12 +21,14 @@ public record FLVTag(
     long timestamp,
     int streamId,
     FLVPayload payload
-) {
+) implements FLVSerializable {
 
+    @Override
     public int size() {
         return 11 + this.payload.size();
     }
 
+    @Override
     public byte[] raw() {
         byte[] raw = new byte[this.size()];
 
@@ -81,21 +84,12 @@ public record FLVTag(
                 headerBytes[10]
         });
 
-        FLVPayload payload = null;
-        switch (packetType) {
-            case 8:
-                payload = FLVAudioPayload.from(payloadBytes);
-                break;
-            case 9:
-                payload = FLVVideoPayload.from(payloadBytes);
-                break;
-            case 18:
-                payload = new FLVUnknownPayload(payloadBytes); // TODO
-                break;
-            default:
-                payload = new FLVUnknownPayload(payloadBytes);
-                break;
-        }
+        FLVPayload payload = switch (packetType) {
+            case 8 -> FLVAudioPayload.from(payloadBytes);
+            case 9 -> FLVVideoPayload.from(payloadBytes);
+            case 18 -> new FLVUnknownPayload(payloadBytes); // TODO
+            default -> new FLVUnknownPayload(payloadBytes);
+        };
 
         return new FLVTag(
             FLVTagType.LUT[packetType],

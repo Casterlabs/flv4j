@@ -1,11 +1,9 @@
 package co.casterlabs.flv4j.packets.payload;
 
-public interface FLVPayload {
+import co.casterlabs.flv4j.FLVSerializable;
+
+public interface FLVPayload extends FLVSerializable {
 
     public boolean isSequenceHeader();
-
-    public int size();
-
-    public byte[] raw();
 
 }

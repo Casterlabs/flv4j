@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.FLVSerializable;
 import lombok.NonNull;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=%5Bedit%5D-,Header,-%5Bedit%5D
@@ -11,7 +12,7 @@ public record FLVFileHeader(
     int version,
     int flags,
     byte[] expandedHeaderData
-) {
+) implements FLVSerializable {
 
     public boolean isAudio() {
         return (this.flags & 0x04) != 0;
@@ -21,29 +22,12 @@ public record FLVFileHeader(
         return (this.flags & 0x01) != 0;
     }
 
+    @Override
     public int size() {
         return 9 + this.expandedHeaderData.length;
     }
 
     @Override
-    public final String toString() {
-        StringBuilder expandedHeaderDataHex = new StringBuilder();
-        for (byte b : this.expandedHeaderData) {
-            expandedHeaderDataHex.append(" 0x");
-            expandedHeaderDataHex.append(Integer.toString(b, 16));
-        }
-
-        return String.format(
-            "FLVFileHeader[version=%d, flags=0x%x, isAudio=%b, isVideo=%b, expandedHeaderData=[%s], size=%d]",
-            this.version,
-            this.flags,
-            this.isAudio(),
-            this.isVideo(),
-            expandedHeaderDataHex.isEmpty() ? "" : expandedHeaderDataHex.substring(1),
-            this.size()
-        );
-    }
-
     public byte[] raw() {
         byte[] arr = new byte[9 + this.expandedHeaderData.length];
         arr[0] = 'F';
@@ -71,6 +55,25 @@ public record FLVFileHeader(
         byte[] expandedHeaderData = in.readNBytes(9 - headerSize);
 
         return new FLVFileHeader(version, flags, expandedHeaderData);
+    }
+
+    @Override
+    public final String toString() {
+        StringBuilder expandedHeaderDataHex = new StringBuilder();
+        for (byte b : this.expandedHeaderData) {
+            expandedHeaderDataHex.append(" 0x");
+            expandedHeaderDataHex.append(Integer.toString(b, 16));
+        }
+
+        return String.format(
+            "FLVFileHeader[version=%d, flags=0x%x, isAudio=%b, isVideo=%b, expandedHeaderData=[%s], size=%d]",
+            this.version,
+            this.flags,
+            this.isAudio(),
+            this.isVideo(),
+            expandedHeaderDataHex.isEmpty() ? "" : expandedHeaderDataHex.substring(1),
+            this.size()
+        );
     }
 
 }
