@@ -12,7 +12,7 @@ public record UnknownAudioData(
     @Override
     public final String toString() {
         return String.format(
-            "UnknownAudioPayload[size=%d]",
+            "UnknownAudioData[size=%d]",
             this.size()
         );
     }
