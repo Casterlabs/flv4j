@@ -89,15 +89,11 @@ public record FLVAudioPayload(
     @Override
     public final String toString() {
         return String.format(
-            "FLVAudioPayload[format=%s (%d), rate=%s (%d), sampleSize=%s (%d), channels=%s (%d), data=[len=%d], isSequenceHeader=%b]",
-            this.format(),
-            this.rawFormat,
-            this.rate(),
-            this.rawRate,
-            this.sampleSize(),
-            this.rawSampleSize,
-            this.channels(),
-            this.rawChannels,
+            "FLVAudioPayload[format=%s (%d), rate=%s (%d), sampleSize=%s (%d), channels=%s (%d), data=%s, isSequenceHeader=%b]",
+            this.format(), this.rawFormat,
+            this.rate(), this.rawRate,
+            this.sampleSize(), this.rawSampleSize,
+            this.channels(), this.rawChannels,
             this.data,
             this.isSequenceHeader()
         );

@@ -72,10 +72,8 @@ public record FLVVideoPayload(
     public final String toString() {
         return String.format(
             "FLVVideoPayload[frameType=%s (%d), codec=%s (%d), data=[len=%d], isSequenceHeader=%b]",
-            this.frameType(),
-            this.rawFrameType,
-            this.codec(),
-            this.rawCodec,
+            this.frameType(), this.rawFrameType,
+            this.codec(), this.rawCodec,
             this.data.length,
             this.isSequenceHeader()
         );
