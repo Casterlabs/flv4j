@@ -1,6 +1,9 @@
 package co.casterlabs.flv4j.packets.payload.audio;
 
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
+import co.casterlabs.flv4j.packets.payload.audio.data.AudioData;
+import co.casterlabs.flv4j.packets.payload.audio.data.UnknownAudioData;
+import co.casterlabs.flv4j.packets.payload.audio.data.aac.AACAudioData;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=10
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio
@@ -9,7 +12,7 @@ public record FLVAudioPayload(
     int rawRate,
     int rawSampleSize,
     int rawChannels,
-    byte[] data
+    AudioData data
 ) implements FLVPayload {
 
     public boolean isExHeader() {
@@ -40,21 +43,21 @@ public record FLVAudioPayload(
         }
 
         return switch (this.format()) {
-            case AAC -> this.data[0] == 0;
+            case AAC -> ((AACAudioData) this.data).rawType() == 0;
             default -> false; // TODO properly parse out the data.
         };
     }
 
     @Override
     public int size() {
-        return 1 + this.data.length;
+        return 1 + this.data.size();
     }
 
     @Override
     public byte[] raw() {
         byte[] raw = new byte[this.size()];
         raw[0] = (byte) (this.rawFormat << 4 | this.rawRate << 2 | this.rawSampleSize << 1 | this.rawChannels);
-        System.arraycopy(this.data, 0, raw, 1, this.data.length);
+        System.arraycopy(this.data.raw(), 0, raw, 1, this.data.size());
         return raw;
     }
 
@@ -66,8 +69,13 @@ public record FLVAudioPayload(
         byte sampleSize = (byte) ((firstByte >> 1) & 0b1);
         byte channels = (byte) (firstByte & 0b1);
 
-        byte[] data = new byte[raw.length - 1];
-        System.arraycopy(raw, 1, data, 0, data.length);
+        byte[] dataBytes = new byte[raw.length - 1];
+        System.arraycopy(raw, 1, dataBytes, 0, dataBytes.length);
+
+        AudioData data = switch (format) {
+            case 10 -> AACAudioData.from(dataBytes);
+            default -> new UnknownAudioData(dataBytes);
+        };
 
         return new FLVAudioPayload(
             format,
@@ -90,7 +98,7 @@ public record FLVAudioPayload(
             this.rawSampleSize,
             this.channels(),
             this.rawChannels,
-            this.data.length,
+            this.data,
             this.isSequenceHeader()
         );
     }
