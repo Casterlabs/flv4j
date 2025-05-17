@@ -3,19 +3,18 @@ package co.casterlabs.flv4j.encoders;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.packets.FLVFileHeader;
 import co.casterlabs.flv4j.packets.FLVTag;
+import co.casterlabs.flv4j.util.ASWriter;
 import lombok.Getter;
 import lombok.NonNull;
 
+// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=8
 public class StreamFLVMuxer {
     private final @Getter FLVFileHeader header;
     private final OutputStream stream;
 
     private @Getter long bytesWritten = 0;
-
-    private FLVTag previousTag = null;
 
     /**
      * This allows you to rewrite the timestamps from another source.
@@ -32,8 +31,11 @@ public class StreamFLVMuxer {
         this.stream = stream;
 
         // This is the first packet. Write out the header.
-        this.stream.write(this.header.raw());
+        this.header.serialize(stream);
         this.bytesWritten += this.header.size();
+
+        ASWriter.u32(this.stream, 0); // initial previousTagSize
+        this.bytesWritten += 4;
     }
 
     public synchronized void write(FLVTag tag) throws IOException {
@@ -49,13 +51,13 @@ public class StreamFLVMuxer {
             );
         }
 
-        this.stream.write(PrimitiveMarshall.BIG_ENDIAN.intToBytes(this.previousTag == null ? 0 : this.previousTag.size()));
+        int tagSize = tag.size();
+
+        tag.serialize(this.stream);
+        this.bytesWritten += tagSize;
+
+        ASWriter.u32(this.stream, tagSize); // previousTagSize, also acts like the trailer.
         this.bytesWritten += 4;
-
-        this.stream.write(tag.raw());
-        this.bytesWritten += tag.size();
-
-        this.previousTag = tag;
     }
 
 }

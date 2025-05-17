@@ -1,9 +1,14 @@
 package co.casterlabs.flv4j.packets.payload.video;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.video.data.UnknownVideoData;
 import co.casterlabs.flv4j.packets.payload.video.data.VideoData;
 import co.casterlabs.flv4j.packets.payload.video.data.avc.AVCVideoData;
+import co.casterlabs.flv4j.util.ASSizer;
+import co.casterlabs.flv4j.util.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
@@ -44,15 +49,15 @@ public record FLVVideoPayload(
 
     @Override
     public int size() {
-        return 1 + this.data.size();
+        return new ASSizer().u8()
+            .bytes(this.data.size()).size;
     }
 
     @Override
-    public byte[] raw() {
-        byte[] raw = new byte[this.size()];
-        raw[0] = (byte) (this.rawFrameType << 4 | this.rawCodec);
-        System.arraycopy(this.data.raw(), 0, raw, 1, this.data.size());
-        return raw;
+    public void serialize(OutputStream out) throws IOException {
+        int fb = this.rawFrameType << 4 | this.rawCodec;
+        ASWriter.u8(out, fb);
+        this.data.serialize(out);
     }
 
     public static FLVVideoPayload from(byte[] raw) {

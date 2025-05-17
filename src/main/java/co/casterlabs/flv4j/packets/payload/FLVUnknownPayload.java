@@ -1,5 +1,8 @@
 package co.casterlabs.flv4j.packets.payload;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public record FLVUnknownPayload(
     byte[] raw
 ) implements FLVPayload {
@@ -12,6 +15,11 @@ public record FLVUnknownPayload(
     @Override
     public int size() {
         return this.raw.length;
+    }
+
+    @Override
+    public void serialize(OutputStream out) throws IOException {
+        out.write(this.raw);
     }
 
     @Override

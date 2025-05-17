@@ -1,5 +1,8 @@
 package co.casterlabs.flv4j.packets.payload.video.data;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public record UnknownVideoData(
     byte[] raw
 ) implements VideoData {
@@ -7,6 +10,11 @@ public record UnknownVideoData(
     @Override
     public int size() {
         return this.raw.length;
+    }
+
+    @Override
+    public void serialize(OutputStream out) throws IOException {
+        out.write(this.raw);
     }
 
     @Override

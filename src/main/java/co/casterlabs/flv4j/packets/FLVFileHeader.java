@@ -2,9 +2,14 @@ package co.casterlabs.flv4j.packets;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.FLVSerializable;
+import co.casterlabs.flv4j.util.ASSizer;
+import co.casterlabs.flv4j.util.ASWriter;
 import lombok.NonNull;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=%5Bedit%5D-,Header,-%5Bedit%5D
@@ -13,6 +18,8 @@ public record FLVFileHeader(
     int flags,
     byte[] expandedHeaderData
 ) implements FLVSerializable {
+
+    private static final byte[] MAGIC = "FLV".getBytes(StandardCharsets.US_ASCII);
 
     public boolean isAudio() {
         return (this.flags & 0x04) != 0;
@@ -24,26 +31,26 @@ public record FLVFileHeader(
 
     @Override
     public int size() {
-        return 9 + this.expandedHeaderData.length;
+        return new ASSizer()
+            .bytes(MAGIC.length)
+            .u8()
+            .u8()
+            .u32()
+            .bytes(this.expandedHeaderData.length).size;
     }
 
     @Override
-    public byte[] raw() {
-        byte[] arr = new byte[9 + this.expandedHeaderData.length];
-        arr[0] = 'F';
-        arr[1] = 'L';
-        arr[2] = 'V';
-        arr[3] = (byte) this.version;
-        arr[4] = (byte) this.flags;
-        System.arraycopy(PrimitiveMarshall.BIG_ENDIAN.intToBytes(arr.length), 0, arr, 5, 4);
-        System.arraycopy(this.expandedHeaderData, 0, arr, 9, this.expandedHeaderData.length);
-        return arr;
+    public void serialize(OutputStream out) throws IOException {
+        out.write(MAGIC);
+        ASWriter.u8(out, this.version);
+        ASWriter.u8(out, this.flags);
+        ASWriter.u32(out, this.size()); // [sic]
+        out.write(this.expandedHeaderData);
     }
 
     public static FLVFileHeader from(@NonNull InputStream in) throws IOException {
-        byte[] sig = in.readNBytes(3);
-
-        if (sig[0] != 'F' || sig[1] != 'L' || sig[2] != 'V') {
+        byte[] sig = in.readNBytes(MAGIC.length);
+        if (!Arrays.equals(sig, MAGIC)) {
             throw new IllegalArgumentException("Packet signature should be FLV, but is instead: " + new String(sig));
         }
 

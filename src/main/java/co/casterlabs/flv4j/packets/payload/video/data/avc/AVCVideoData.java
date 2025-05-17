@@ -1,7 +1,12 @@
 package co.casterlabs.flv4j.packets.payload.video.data.avc;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.packets.payload.video.data.VideoData;
+import co.casterlabs.flv4j.util.ASSizer;
+import co.casterlabs.flv4j.util.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14
 public record AVCVideoData(
@@ -16,16 +21,17 @@ public record AVCVideoData(
 
     @Override
     public int size() {
-        return 4 + this.frame.size();
+        return new ASSizer()
+            .u8()
+            .u24()
+            .bytes(this.frame.size()).size;
     }
 
     @Override
-    public byte[] raw() {
-        byte[] raw = new byte[this.size()];
-        raw[0] = (byte) this.rawType;
-        System.arraycopy(PrimitiveMarshall.BIG_ENDIAN.intToBytes(this.compositionTime), 1, raw, 1, 3);
-        System.arraycopy(this.frame.raw(), 0, raw, 4, this.frame.size());
-        return raw;
+    public void serialize(OutputStream out) throws IOException {
+        ASWriter.u8(out, this.rawType);
+        ASWriter.u24(out, this.compositionTime);
+        this.frame.serialize(out);
     }
 
     public static AVCVideoData from(byte[] raw) {

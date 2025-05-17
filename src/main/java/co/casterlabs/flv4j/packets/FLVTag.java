@@ -2,15 +2,17 @@ package co.casterlabs.flv4j.packets;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.jetbrains.annotations.Nullable;
+import java.io.OutputStream;
 
 import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.FLVSerializable;
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.FLVUnknownPayload;
 import co.casterlabs.flv4j.packets.payload.audio.FLVAudioPayload;
+import co.casterlabs.flv4j.packets.payload.script.FLVScriptPayload;
 import co.casterlabs.flv4j.packets.payload.video.FLVVideoPayload;
+import co.casterlabs.flv4j.util.ASSizer;
+import co.casterlabs.flv4j.util.ASWriter;
 import lombok.NonNull;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=newer%20expanded%20header-,Packets,-%5Bedit%5D
@@ -25,25 +27,28 @@ public record FLVTag(
 
     @Override
     public int size() {
-        return 11 + this.payload.size();
+        return new ASSizer()
+            .u8()
+            .u24()
+            .u24()
+            .u8()
+            .u24()
+            .bytes(payloadSize).size;
     }
 
     @Override
-    public byte[] raw() {
-        byte[] raw = new byte[this.size()];
+    public void serialize(OutputStream out) throws IOException {
+        ASWriter.u8(out, this.type.id);
+        ASWriter.u24(out, this.payloadSize);
 
-        raw[0] = (@Nullable byte) this.type.id;
-        System.arraycopy(PrimitiveMarshall.BIG_ENDIAN.intToBytes(this.payloadSize), 1, raw, 1, 3);
+//        byte[] timestampBytes = PrimitiveMarshall.BIG_ENDIAN.longToBytes(this.timestamp);
+//        out.write(timestampBytes, 5, 3);
+//        ASWriter.u8(out, timestampBytes[4]);
+        ASWriter.u24(out, (int) this.timestamp & 0xFFFFFF);
+        ASWriter.u8(out, (int) (this.timestamp >>> 24 & 0xFF)); // I hate this.
 
-        byte[] timestampBytes = PrimitiveMarshall.BIG_ENDIAN.longToBytes(this.timestamp);
-        System.arraycopy(timestampBytes, 5, raw, 4, 3);
-        raw[7] = timestampBytes[4];
-
-        System.arraycopy(PrimitiveMarshall.BIG_ENDIAN.intToBytes(this.streamId), 1, raw, 8, 3);
-
-        System.arraycopy(this.payload.raw(), 0, raw, 11, this.payload.size());
-
-        return raw;
+        ASWriter.u24(out, this.streamId);
+        this.payload.serialize(out);
     }
 
     public static FLVTag from(@NonNull InputStream in) throws IOException {
@@ -87,7 +92,7 @@ public record FLVTag(
         FLVPayload payload = switch (packetType) {
             case 8 -> FLVAudioPayload.from(payloadBytes);
             case 9 -> FLVVideoPayload.from(payloadBytes);
-//            case 18 -> new FLVScriptPayload(payloadBytes); // TODO
+            case 18 -> FLVScriptPayload.from(payloadBytes);
             default -> new FLVUnknownPayload(payloadBytes);
         };
 

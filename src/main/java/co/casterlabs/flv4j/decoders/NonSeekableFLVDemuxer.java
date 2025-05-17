@@ -11,6 +11,7 @@ import co.casterlabs.flv4j.util.ThrowOnMinus1InputStream;
 import lombok.Getter;
 import lombok.NonNull;
 
+// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=8
 public abstract class NonSeekableFLVDemuxer {
     private @Getter FLVFileHeader header;
     private @Getter long bytesRead = 0;

@@ -1,6 +1,11 @@
 package co.casterlabs.flv4j.packets.payload.audio.data.aac;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import co.casterlabs.flv4j.packets.payload.audio.data.AudioData;
+import co.casterlabs.flv4j.util.ASSizer;
+import co.casterlabs.flv4j.util.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=12
 public record AACAudioData(
@@ -14,15 +19,14 @@ public record AACAudioData(
 
     @Override
     public int size() {
-        return 1 + this.frame.size();
+        return new ASSizer().u8()
+            .bytes(this.frame.size()).size;
     }
 
     @Override
-    public byte[] raw() {
-        byte[] raw = new byte[this.size()];
-        raw[0] = (byte) this.rawType;
-        System.arraycopy(this.frame.raw(), 0, raw, 1, this.frame.size());
-        return raw;
+    public void serialize(OutputStream out) throws IOException {
+        ASWriter.u8(out, this.rawType);
+        this.frame.serialize(out);
     }
 
     public static AACAudioData from(byte[] raw) {
