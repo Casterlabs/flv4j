@@ -6,6 +6,7 @@ import java.io.InputStream;
 import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.packets.FLVFileHeader;
 import co.casterlabs.flv4j.packets.FLVTag;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.EndOfStreamException;
 import co.casterlabs.flv4j.util.ThrowOnMinus1InputStream;
 import lombok.Getter;
@@ -20,14 +21,16 @@ public abstract class NonSeekableFLVDemuxer {
         ThrowOnMinus1InputStream tm1 = new ThrowOnMinus1InputStream(in);
 
         try {
-            this.header = FLVFileHeader.from(tm1);
+            ASReader reader = new ASReader(tm1);
+
+            this.header = FLVFileHeader.parse(reader);
             this.onHeader(this.header);
             this.bytesRead += this.header.size();
 
             while (true) {
                 long previousPacketSizeExclSize = Integer.toUnsignedLong(PrimitiveMarshall.BIG_ENDIAN.bytesToInt(tm1.readNBytes(4)));
 
-                FLVTag tag = FLVTag.from(tm1);
+                FLVTag tag = FLVTag.parse(reader);
                 this.onTag(previousPacketSizeExclSize, tag);
                 this.bytesRead += tag.size() + 4;
             }

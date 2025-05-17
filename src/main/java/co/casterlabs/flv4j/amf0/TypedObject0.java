@@ -2,10 +2,9 @@ package co.casterlabs.flv4j.amf0;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=8
@@ -27,13 +26,13 @@ public record TypedObject0(
     @Override
     public int size() {
         return _ObjectUtils.computeMapSize(this.map)
-            .marker()
+            .u8()
             .utf8(this.className).size;
     }
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.utf8(out, this.className);
         _ObjectUtils.serializeMap(out, this.map);
     }
@@ -43,18 +42,11 @@ public record TypedObject0(
         return this.map.toString();
     }
 
-    static TypedObject0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
+    static TypedObject0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
 
-        int classNameLen = PrimitiveMarshall.BIG_ENDIAN.bytesToInt(new byte[] {
-                0,
-                0,
-                bytes[offset + 1],
-                bytes[offset + 2]
-        });
-
-        String className = new String(bytes, offset + 1 + Integer.BYTES, classNameLen, StandardCharsets.UTF_8);
-        Map<String, AMF0Type> map = _ObjectUtils.parseMap(offset + 1 + Short.BYTES + classNameLen, bytes);
+        String className = reader.utf8();
+        Map<String, AMF0Type> map = _ObjectUtils.parseMap(reader);
 
         return new TypedObject0(className, map);
     }

@@ -3,8 +3,8 @@ package co.casterlabs.flv4j.packets.payload.video.data.avc;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.packets.payload.video.data.VideoData;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -34,21 +34,14 @@ public record AVCVideoData(
         this.frame.serialize(out);
     }
 
-    public static AVCVideoData from(byte[] raw) {
-        byte rawType = raw[0];
-        int compositionTime = PrimitiveMarshall.BIG_ENDIAN.bytesToInt(new byte[] {
-                0,
-                raw[1],
-                raw[2],
-                raw[3]
-        });
+    public static AVCVideoData parse(ASReader reader, int length) throws IOException {
+        int rawType = reader.u8();
+        int compositionTime = reader.u24();
 
-        byte[] frameBytes = new byte[raw.length - 4];
-        System.arraycopy(raw, 4, frameBytes, 0, frameBytes.length);
-
+        int frameLen = length - 4;
         AVCVideoFrame frame = switch (rawType) {
-//            case 0 -> AVCDecoderConfigurationRecord.from(frameBytes); // TODO
-            default -> new AVCVideoRawFrame(frameBytes);
+//            case 0 -> AVCDecoderConfigurationRecord.from(reader.limited(frameLen), frameLen); // TODO
+            default -> new AVCVideoRawFrame(reader.bytes(frameLen));
         };
 
         return new AVCVideoData(

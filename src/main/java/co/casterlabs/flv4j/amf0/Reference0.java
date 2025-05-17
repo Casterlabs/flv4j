@@ -3,7 +3,7 @@ package co.casterlabs.flv4j.amf0;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -22,7 +22,7 @@ import co.casterlabs.flv4j.util.ASWriter;
 public record Reference0(
     int marker
 ) implements AMF0Type {
-    private static final int SIZE = new ASSizer().marker().u16().size;
+    private static final int SIZE = new ASSizer().u8().u16().size;
 
     @Override
     public Type type() {
@@ -36,7 +36,7 @@ public record Reference0(
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.u16(out, this.marker);
     }
 
@@ -45,15 +45,10 @@ public record Reference0(
         return String.format("@%d", this.marker);
     }
 
-    static Reference0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
-        int marker = PrimitiveMarshall.BIG_ENDIAN.bytesToInt(new byte[] {
-                0,
-                0,
-                bytes[offset + 1],
-                bytes[offset + 2]
-        });
+    static Reference0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
 
+        int marker = reader.u16();
         return new Reference0(marker);
     }
 

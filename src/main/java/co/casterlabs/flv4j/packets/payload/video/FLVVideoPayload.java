@@ -7,6 +7,7 @@ import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.video.data.UnknownVideoData;
 import co.casterlabs.flv4j.packets.payload.video.data.VideoData;
 import co.casterlabs.flv4j.packets.payload.video.data.avc.AVCVideoData;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -60,18 +61,16 @@ public record FLVVideoPayload(
         this.data.serialize(out);
     }
 
-    public static FLVVideoPayload from(byte[] raw) {
-        byte firstByte = raw[0];
+    public static FLVVideoPayload parse(ASReader reader, int length) throws IOException {
+        int fb = reader.u8();
 
-        byte frameType = (byte) ((firstByte >> 4) & 0b1111);
-        byte codecId = (byte) (firstByte & 0b1111);
+        int frameType = fb >> 4 & 0b1111;
+        int codecId = fb & 0b1111;
 
-        byte[] dataBytes = new byte[raw.length - 1];
-        System.arraycopy(raw, 1, dataBytes, 0, dataBytes.length);
-
+        int dataLen = length - 1;
         VideoData data = switch (codecId) {
-            case 7 -> AVCVideoData.from(dataBytes);
-            default -> new UnknownVideoData(dataBytes);
+            case 7 -> AVCVideoData.parse(reader.limited(dataLen), dataLen);
+            default -> new UnknownVideoData(reader.bytes(dataLen));
         };
 
         return new FLVVideoPayload(

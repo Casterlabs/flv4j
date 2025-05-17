@@ -13,10 +13,6 @@ import lombok.NoArgsConstructor;
 public class ASWriter {
     private static final PrimitiveMarshall M = PrimitiveMarshall.BIG_ENDIAN;
 
-    public static void marker(OutputStream out, int value) throws IOException {
-        u8(out, value);
-    }
-
     public static void u8(OutputStream out, int value) throws IOException {
         out.write(value);
     }

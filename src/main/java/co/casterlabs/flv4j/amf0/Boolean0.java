@@ -3,6 +3,7 @@ package co.casterlabs.flv4j.amf0;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -13,7 +14,7 @@ public record Boolean0(
     public static final Boolean0 TRUE = new Boolean0(true);
     public static final Boolean0 FALSE = new Boolean0(false);
 
-    private static final int SIZE = new ASSizer().marker().u8().size;
+    private static final int SIZE = new ASSizer().u8().u8().size;
 
     @Override
     public Type type() {
@@ -27,7 +28,7 @@ public record Boolean0(
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.u8(out, this.value ? 1 : 0);
     }
 
@@ -36,10 +37,10 @@ public record Boolean0(
         return String.valueOf(this.value);
     }
 
-    static Boolean0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
+    static Boolean0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
 
-        int value = bytes[offset + 1];
+        int value = reader.u8();
         return value == 0 ? FALSE : TRUE;
     }
 

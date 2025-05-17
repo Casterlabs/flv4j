@@ -1,22 +1,11 @@
 package co.casterlabs.flv4j.packets.payload.audio.data.aac;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import co.casterlabs.flv4j.FLVRawSerializable;
 
 // https://ossrs.net/lts/zh-cn/assets/files/ISO_IEC_14496-3-AAC-2001-7f4d0b3622b322cb72c78f85d91c449f.pdf#page=33
 public record AACAudioRawFrame(
     byte[] raw
-) implements AACAudioFrame {
-
-    @Override
-    public int size() {
-        return this.raw.length;
-    }
-
-    @Override
-    public void serialize(OutputStream out) throws IOException {
-        out.write(this.raw);
-    }
+) implements AACAudioFrame, FLVRawSerializable {
 
     @Override
     public final String toString() {

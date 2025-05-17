@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import co.casterlabs.flv4j.packets.payload.audio.data.AudioData;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -29,15 +30,13 @@ public record AACAudioData(
         this.frame.serialize(out);
     }
 
-    public static AACAudioData from(byte[] raw) {
-        byte rawType = raw[0];
+    public static AACAudioData parse(ASReader reader, int length) throws IOException {
+        int rawType = reader.u8();
 
-        byte[] frameBytes = new byte[raw.length - 1];
-        System.arraycopy(raw, 1, frameBytes, 0, frameBytes.length);
-
+        int frameLen = length - 1;
         AACAudioFrame frame = switch (rawType) {
-//            case 0 -> AACAudioSpecificConfig.from(frameBytes); // TODO
-            default -> new AACAudioRawFrame(frameBytes);
+//            case 0 -> AACAudioSpecificConfig.from(reader.limited(frameLen), frameLen); // TODO
+            default -> new AACAudioRawFrame(reader.bytes(frameLen));
         };
 
         return new AACAudioData(

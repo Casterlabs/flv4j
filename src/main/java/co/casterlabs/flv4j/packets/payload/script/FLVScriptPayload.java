@@ -7,6 +7,7 @@ import co.casterlabs.flv4j.amf0.AMF0Type;
 import co.casterlabs.flv4j.amf0.ECMAArray0;
 import co.casterlabs.flv4j.amf0.String0;
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
+import co.casterlabs.flv4j.util.ASReader;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14 // WRONG!
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10_1.pdf#page=80 // THIS ONE IS CORRECT!
@@ -35,9 +36,9 @@ public record FLVScriptPayload(
         this.value.serialize(out);
     }
 
-    public static FLVScriptPayload from(byte[] raw) {
-        String0 method = AMF0Type.Type.STRING.parse(0, raw);
-        ECMAArray0 value = AMF0Type.Type.ECMA_ARRAY.parse(method.size(), raw);
+    public static FLVScriptPayload parse(ASReader reader) throws IOException {
+        String0 method = AMF0Type.parse(reader);
+        ECMAArray0 value = AMF0Type.parse(reader);
         return new FLVScriptPayload(method, value);
     }
 

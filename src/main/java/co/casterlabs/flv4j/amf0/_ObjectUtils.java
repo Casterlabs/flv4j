@@ -2,13 +2,13 @@ package co.casterlabs.flv4j.amf0;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import co.casterlabs.flv4j.amf0.AMF0Type.Type;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -17,22 +17,20 @@ import co.casterlabs.flv4j.util.ASWriter;
 // This class is used for both Objects and ECMA Arrays.
 class _ObjectUtils {
 
-    static Map<String, AMF0Type> parseMap(int offset, byte[] bytes) {
+    static Map<String, AMF0Type> parseMap(ASReader reader) throws IOException {
         Map<String, AMF0Type> map = new LinkedHashMap<>();
 
         String key = null;
-        for (int idx = offset; idx < bytes.length;) {
+        while (true) {
             if (key == null) {
-                String0 keyData = String0.from(idx - 1, bytes); // -1 because type is implicit.
+                String0 keyData = String0.parse(reader); // Type is implicit, which means no marker.
                 key = keyData.value();
-                idx += Short.BYTES; // Key length
-                idx += key.getBytes(StandardCharsets.UTF_8).length;
 //                System.out.printf("[ECMA?]Object KEY: %d/%d @ %s\n", idx, bytes.length, key);
                 continue;
             }
 
-            AMF0Type.Type type = AMF0Type.Type.LUT[bytes[idx]];
-            if (type == Type.OBJECT_END) {
+            AMF0Type value = AMF0Type.parse(reader);
+            if (value.type() == Type.OBJECT_END) {
                 if (key.length() > 0) {
                     throw new IllegalArgumentException("OBJECT_END must be preceeded by an empty key!");
                 }
@@ -41,9 +39,7 @@ class _ObjectUtils {
                 break;
             }
 
-            AMF0Type value = type.parse(idx, bytes);
 //            System.out.printf("[ECMA?]Object VALUE: %d/%d @ %d %s | %s\n", idx, bytes.length, value.size(), value.type(), value);
-            idx += value.size();
 
             map.put(key, value);
             key = null;
@@ -62,7 +58,7 @@ class _ObjectUtils {
 
         sizer
             .utf8empty() // 0 key length (for the end tag)
-            .marker();
+            .u8();
 
         return sizer;
     }
@@ -77,7 +73,7 @@ class _ObjectUtils {
         }
 
         ASWriter.utf8empty(out); // 0 key length (for the end tag)
-        ASWriter.marker(out, AMF0Type.Type.OBJECT_END.id);
+        ASWriter.u8(out, AMF0Type.Type.OBJECT_END.id);
     }
 
 }

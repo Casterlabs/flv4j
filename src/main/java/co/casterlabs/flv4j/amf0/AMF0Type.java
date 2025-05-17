@@ -1,8 +1,10 @@
 package co.casterlabs.flv4j.amf0;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import co.casterlabs.flv4j.FLVSerializable;
+import co.casterlabs.flv4j.util.ASReader;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
@@ -29,28 +31,40 @@ public interface AMF0Type extends FLVSerializable {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends AMF0Type> T parse(byte[] b, int off) throws IOException {
+        int len = b.length - off;
+        return (T) parse(new ASReader(b, off, len));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends AMF0Type> T parse(ASReader reader) throws IOException {
+        Type type = Type.LUT[reader.u8()];
+        return (T) type.parser.parse(reader);
+    }
+
     // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=4
     @AllArgsConstructor
     public enum Type {
         // @formatter:off
-        NUMBER         ( 0, Number0::from),
-        BOOLEAN        ( 1, Boolean0::from),
-        STRING         ( 2, String0::from),
-        OBJECT         ( 3, Object0::from),
+        NUMBER         ( 0, Number0::parse),
+        BOOLEAN        ( 1, Boolean0::parse),
+        STRING         ( 2, String0::parse),
+        OBJECT         ( 3, Object0::parse),
         RESERVED_4     ( 4, _Parser.RESERVED),               // a.k.a "MOVIE_CLIP", was never used.
-        NULL           ( 5, (o,b) -> Null0.INSTANCE),
-        UNDEFINED      ( 6, (o,b) -> Undefined0.INSTANCE),
-        REFERENCE      ( 7, Reference0::from),
-        ECMA_ARRAY     ( 8, ECMAArray0::from),
-        OBJECT_END     ( 9, (o,b) -> ObjectEnd0.INSTANCE),
-        STRICT_ARRAY   (10, StrictArray0::from),
-        DATE           (11, Date0::from),
-        LONG_STRING    (12, LongString0::from),
-        UNSUPPORTED    (13, (o,b) -> Unsupported0.INSTANCE),
+        NULL           ( 5, _MarkerType.parser(Null0.INSTANCE)),
+        UNDEFINED      ( 6, _MarkerType.parser(Undefined0.INSTANCE)),
+        REFERENCE      ( 7, Reference0::parse),
+        ECMA_ARRAY     ( 8, ECMAArray0::parse),
+        OBJECT_END     ( 9, _MarkerType.parser(ObjectEnd0.INSTANCE)),
+        STRICT_ARRAY   (10, StrictArray0::parse),
+        DATE           (11, Date0::parse),
+        LONG_STRING    (12, LongString0::parse),
+        UNSUPPORTED    (13, _MarkerType.parser(Unsupported0.INSTANCE)),
         RESERVED_14    (14, _Parser.RESERVED),               // a.k.a "RECORDSET", was never used.
-        XML_DOCUMENT   (15, XMLDocument0::from),
-        TYPED_OBJECT   (16, TypedObject0::from),
-        SWITCH_TO_AMF3 (17, (o,b) -> SwitchToAMF3.INSTANCE),
+        XML_DOCUMENT   (15, XMLDocument0::parse),
+        TYPED_OBJECT   (16, TypedObject0::parse),
+        SWITCH_TO_AMF3 (17, _MarkerType.parser(SwitchToAMF3.INSTANCE)),
         // @formatter:on
         ;
 
@@ -62,12 +76,13 @@ public interface AMF0Type extends FLVSerializable {
         }
 
         public final int id;
-        private final _Parser parser;
 
-        @SuppressWarnings("unchecked")
-        public <T extends AMF0Type> T parse(int offset, byte[] bytes) {
-            return (T) this.parser.parse(offset, bytes);
-        }
+        /**
+         * @deprecated When the parser is used directly, the type marker should be
+         *             consumed already.
+         */
+        @Deprecated
+        public final _Parser parser;
 
     }
 

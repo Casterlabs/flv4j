@@ -2,9 +2,8 @@ package co.casterlabs.flv4j.amf0;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -22,13 +21,13 @@ public record XMLDocument0(
     @Override
     public int size() {
         return new ASSizer()
-            .marker()
+            .u8()
             .utf8long(this.value).size;
     }
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.utf8long(out, this.value);
     }
 
@@ -49,16 +48,10 @@ public record XMLDocument0(
         return '"' + this.value + '"';
     }
 
-    public static XMLDocument0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
-        int len = PrimitiveMarshall.BIG_ENDIAN.bytesToInt(new byte[] {
-                bytes[offset + 1],
-                bytes[offset + 2],
-                bytes[offset + 3],
-                bytes[offset + 4]
-        });
+    public static XMLDocument0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
 
-        String str = new String(bytes, offset + 1 + Integer.BYTES, len, StandardCharsets.UTF_8);
+        String str = reader.utf8long();
         return new XMLDocument0(str);
     }
 

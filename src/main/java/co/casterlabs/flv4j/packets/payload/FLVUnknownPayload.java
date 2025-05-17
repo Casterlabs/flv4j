@@ -1,25 +1,14 @@
 package co.casterlabs.flv4j.packets.payload;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import co.casterlabs.flv4j.FLVRawSerializable;
 
 public record FLVUnknownPayload(
     byte[] raw
-) implements FLVPayload {
+) implements FLVPayload, FLVRawSerializable {
 
     @Override
     public boolean isSequenceHeader() {
         return false;
-    }
-
-    @Override
-    public int size() {
-        return this.raw.length;
-    }
-
-    @Override
-    public void serialize(OutputStream out) throws IOException {
-        out.write(this.raw);
     }
 
     @Override

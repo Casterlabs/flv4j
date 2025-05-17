@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6
@@ -24,13 +25,13 @@ public record ECMAArray0(
     @Override
     public int size() {
         return _ObjectUtils.computeMapSize(this.map)
-            .marker()
+            .u8()
             .u32().size;
     }
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.u32(out, this.map.size());
         _ObjectUtils.serializeMap(out, this.map);
     }
@@ -40,10 +41,11 @@ public record ECMAArray0(
         return this.map.toString();
     }
 
-    static ECMAArray0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
-        // We also don't care about the size hint (bytes [offset + 1] -> [offset + 4]).
-        Map<String, AMF0Type> map = _ObjectUtils.parseMap(offset + 1 + Integer.BYTES, bytes);
+    static ECMAArray0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
+        reader.u32(); // We don't care about the size hint, it's a suggestion.
+
+        Map<String, AMF0Type> map = _ObjectUtils.parseMap(reader);
         return new ECMAArray0(map);
     }
 

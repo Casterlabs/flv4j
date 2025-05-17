@@ -7,6 +7,7 @@ import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.audio.data.AudioData;
 import co.casterlabs.flv4j.packets.payload.audio.data.UnknownAudioData;
 import co.casterlabs.flv4j.packets.payload.audio.data.aac.AACAudioData;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -67,20 +68,18 @@ public record FLVAudioPayload(
         this.data.serialize(out);
     }
 
-    public static FLVAudioPayload from(byte[] raw) {
-        byte firstByte = raw[0];
+    public static FLVAudioPayload parse(ASReader reader, int length) throws IOException {
+        int fb = reader.u8();
 
-        byte format = (byte) ((firstByte >> 4) & 0b1111);
-        byte rate = (byte) ((firstByte >> 2) & 0b11);
-        byte sampleSize = (byte) ((firstByte >> 1) & 0b1);
-        byte channels = (byte) (firstByte & 0b1);
+        int format = fb >> 4 & 0b1111;
+        int rate = fb >> 2 & 0b11;
+        int sampleSize = fb >> 1 & 0b1;
+        int channels = fb & 0b1;
 
-        byte[] dataBytes = new byte[raw.length - 1];
-        System.arraycopy(raw, 1, dataBytes, 0, dataBytes.length);
-
+        int dataLen = length - 1;
         AudioData data = switch (format) {
-            case 10 -> AACAudioData.from(dataBytes);
-            default -> new UnknownAudioData(dataBytes);
+            case 10 -> AACAudioData.parse(reader.limited(dataLen), dataLen);
+            default -> new UnknownAudioData(reader.bytes(dataLen));
         };
 
         return new FLVAudioPayload(

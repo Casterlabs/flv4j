@@ -2,9 +2,8 @@ package co.casterlabs.flv4j.amf0;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -21,13 +20,13 @@ public record String0(
     @Override
     public int size() {
         return new ASSizer()
-            .marker()
+            .u8()
             .utf8(this.value).size;
     }
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.utf8(out, this.value);
     }
 
@@ -36,16 +35,10 @@ public record String0(
         return '"' + this.value + '"';
     }
 
-    static String0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
-        int len = PrimitiveMarshall.BIG_ENDIAN.bytesToInt(new byte[] {
-                0,
-                0,
-                bytes[offset + 1],
-                bytes[offset + 2]
-        });
+    static String0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
 
-        String str = new String(bytes, offset + 1 + Short.BYTES, len, StandardCharsets.UTF_8);
+        String str = reader.utf8();
         return new String0(str);
     }
 

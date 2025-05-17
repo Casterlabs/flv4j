@@ -1,16 +1,14 @@
 package co.casterlabs.flv4j.packets;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.flv4j.FLVSerializable;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
-import lombok.NonNull;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=%5Bedit%5D-,Header,-%5Bedit%5D
 public record FLVFileHeader(
@@ -48,18 +46,17 @@ public record FLVFileHeader(
         out.write(this.expandedHeaderData);
     }
 
-    public static FLVFileHeader from(@NonNull InputStream in) throws IOException {
-        byte[] sig = in.readNBytes(MAGIC.length);
+    public static FLVFileHeader parse(ASReader reader) throws IOException {
+        byte[] sig = reader.bytes(MAGIC.length);
         if (!Arrays.equals(sig, MAGIC)) {
             throw new IllegalArgumentException("Packet signature should be FLV, but is instead: " + new String(sig));
         }
 
-        int version = in.read() & 0xFF;
+        int version = reader.u8();
+        int flags = reader.u8();
 
-        int flags = in.read() & 0xFF;
-
-        int headerSize = PrimitiveMarshall.BIG_ENDIAN.bytesToInt(in.readNBytes(4));
-        byte[] expandedHeaderData = in.readNBytes(9 - headerSize);
+        int headerSize = (int) reader.u32();
+        byte[] expandedHeaderData = reader.bytes(9 - headerSize);
 
         return new FLVFileHeader(version, flags, expandedHeaderData);
     }

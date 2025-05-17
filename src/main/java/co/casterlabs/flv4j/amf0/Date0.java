@@ -3,7 +3,7 @@ package co.casterlabs.flv4j.amf0;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
+import co.casterlabs.flv4j.util.ASReader;
 import co.casterlabs.flv4j.util.ASSizer;
 import co.casterlabs.flv4j.util.ASWriter;
 
@@ -11,7 +11,7 @@ import co.casterlabs.flv4j.util.ASWriter;
 public record Date0(
     double value
 ) implements AMF0Type {
-    private static final int SIZE = new ASSizer().marker().u16().dbl().size;
+    private static final int SIZE = new ASSizer().u8().u16().dbl().size;
 
     @Override
     public Type type() {
@@ -25,7 +25,7 @@ public record Date0(
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        ASWriter.marker(out, this.type().id);
+        ASWriter.u8(out, this.type().id);
         ASWriter.u16(out, 0); // Timezone is always 0.
         ASWriter.dbl(out, this.value);
     }
@@ -35,21 +35,11 @@ public record Date0(
         return String.valueOf(this.value);
     }
 
-    static Date0 from(int offset, byte[] bytes) {
-        // We don't care about byte[offset + 0], which is the type.
-        offset += Short.BYTES; // Nor do we care about the timezone, which is always 0.
+    static Date0 parse(ASReader reader) throws IOException {
+        // marker is already consumed.
+        reader.u16(); // We don't care about the timezone, it's always 0.
 
-        double value = PrimitiveMarshall.BIG_ENDIAN.bytesToDouble(new byte[] {
-                bytes[offset + 1],
-                bytes[offset + 2],
-                bytes[offset + 3],
-                bytes[offset + 4],
-                bytes[offset + 5],
-                bytes[offset + 6],
-                bytes[offset + 7],
-                bytes[offset + 8]
-        });
-
+        double value = reader.dbl();
         return new Date0(value);
     }
 

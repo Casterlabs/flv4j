@@ -10,11 +10,6 @@ public class ASSizer {
         return this;
     }
 
-    public ASSizer marker() {
-        this.size += 1;
-        return this;
-    }
-
     public ASSizer u8() {
         this.size += 1;
         return this;
