@@ -24,7 +24,7 @@ public record ASReader(
     public int u8() throws IOException {
         int read = in.read();
         if (read == -1) throw new EndOfStreamException("End of stream");
-        return read & 0xFF;
+        return read;
     }
 
     public int u16() throws IOException {
