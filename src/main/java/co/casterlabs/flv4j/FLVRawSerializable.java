@@ -1,8 +1,8 @@
 package co.casterlabs.flv4j;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
+import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import lombok.SneakyThrows;
 
 public interface FLVRawSerializable extends FLVSerializable {
@@ -17,8 +17,8 @@ public interface FLVRawSerializable extends FLVSerializable {
     }
 
     @Override
-    default void serialize(OutputStream out) throws IOException {
-        out.write(this.raw());
+    default void serialize(ASWriter writer) throws IOException {
+        writer.bytes(this.raw());
     }
 
 }

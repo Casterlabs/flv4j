@@ -1,15 +1,14 @@
 package co.casterlabs.flv4j.packets.payload.audio;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
+import co.casterlabs.flv4j.actionscript.io.ASReader;
+import co.casterlabs.flv4j.actionscript.io.ASSizer;
+import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.audio.data.AudioData;
 import co.casterlabs.flv4j.packets.payload.audio.data.UnknownAudioData;
 import co.casterlabs.flv4j.packets.payload.audio.data.aac.AACAudioData;
-import co.casterlabs.flv4j.util.ASReader;
-import co.casterlabs.flv4j.util.ASSizer;
-import co.casterlabs.flv4j.util.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=10
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio
@@ -62,10 +61,10 @@ public record FLVAudioPayload(
     }
 
     @Override
-    public void serialize(OutputStream out) throws IOException {
+    public void serialize(ASWriter writer) throws IOException {
         int fb = this.rawFormat << 4 | this.rawRate << 2 | this.rawSampleSize << 1 | this.rawChannels;
-        ASWriter.u8(out, fb);
-        this.data.serialize(out);
+        writer.u8(fb);
+        this.data.serialize(writer);
     }
 
     public static FLVAudioPayload parse(ASReader reader, int length) throws IOException {

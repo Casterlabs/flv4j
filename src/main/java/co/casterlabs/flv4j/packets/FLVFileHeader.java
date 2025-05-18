@@ -1,14 +1,13 @@
 package co.casterlabs.flv4j.packets;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import co.casterlabs.flv4j.FLVSerializable;
-import co.casterlabs.flv4j.util.ASReader;
-import co.casterlabs.flv4j.util.ASSizer;
-import co.casterlabs.flv4j.util.ASWriter;
+import co.casterlabs.flv4j.actionscript.io.ASReader;
+import co.casterlabs.flv4j.actionscript.io.ASSizer;
+import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=%5Bedit%5D-,Header,-%5Bedit%5D
 public record FLVFileHeader(
@@ -38,12 +37,12 @@ public record FLVFileHeader(
     }
 
     @Override
-    public void serialize(OutputStream out) throws IOException {
-        out.write(MAGIC);
-        ASWriter.u8(out, this.version);
-        ASWriter.u8(out, this.flags);
-        ASWriter.u32(out, this.size()); // [sic]
-        out.write(this.expandedHeaderData);
+    public void serialize(ASWriter writer) throws IOException {
+        writer.bytes(MAGIC);
+        writer.u8(this.version);
+        writer.u8(this.flags);
+        writer.u32(this.size()); // [sic]
+        writer.bytes(this.expandedHeaderData);
     }
 
     public static FLVFileHeader parse(ASReader reader) throws IOException {

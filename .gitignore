@@ -14,5 +14,5 @@ target/
 # Misc
 test.flv
 test_enhanced.flv
-src/test/java/
+src/test/java/co/casterlabs/flv4j/test/old
 copy.flv

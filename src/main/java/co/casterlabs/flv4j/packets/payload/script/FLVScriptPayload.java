@@ -1,13 +1,13 @@
 package co.casterlabs.flv4j.packets.payload.script;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
-import co.casterlabs.flv4j.amf0.AMF0Type;
-import co.casterlabs.flv4j.amf0.ECMAArray0;
-import co.casterlabs.flv4j.amf0.String0;
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
+import co.casterlabs.flv4j.actionscript.amf0.ECMAArray0;
+import co.casterlabs.flv4j.actionscript.amf0.String0;
+import co.casterlabs.flv4j.actionscript.io.ASReader;
+import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
-import co.casterlabs.flv4j.util.ASReader;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14 // WRONG!
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10_1.pdf#page=80 // THIS ONE IS CORRECT!
@@ -31,9 +31,9 @@ public record FLVScriptPayload(
     }
 
     @Override
-    public void serialize(OutputStream out) throws IOException {
-        this.method.serialize(out);
-        this.value.serialize(out);
+    public void serialize(ASWriter writer) throws IOException {
+        this.method.serialize(writer);
+        this.value.serialize(writer);
     }
 
     public static FLVScriptPayload parse(ASReader reader) throws IOException {

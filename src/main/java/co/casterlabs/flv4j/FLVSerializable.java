@@ -2,7 +2,8 @@ package co.casterlabs.flv4j;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+
+import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 public interface FLVSerializable {
 
@@ -10,10 +11,10 @@ public interface FLVSerializable {
 
     default byte[] raw() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(this.size());
-        this.serialize(baos);
+        this.serialize(new ASWriter(baos));
         return baos.toByteArray();
     }
 
-    public void serialize(OutputStream out) throws IOException;
+    public void serialize(ASWriter writer) throws IOException;
 
 }

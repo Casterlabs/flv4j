@@ -1,17 +1,16 @@
 package co.casterlabs.flv4j.packets;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import co.casterlabs.flv4j.FLVSerializable;
+import co.casterlabs.flv4j.actionscript.io.ASReader;
+import co.casterlabs.flv4j.actionscript.io.ASSizer;
+import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.packets.payload.FLVPayload;
 import co.casterlabs.flv4j.packets.payload.FLVUnknownPayload;
 import co.casterlabs.flv4j.packets.payload.audio.FLVAudioPayload;
 import co.casterlabs.flv4j.packets.payload.script.FLVScriptPayload;
 import co.casterlabs.flv4j.packets.payload.video.FLVVideoPayload;
-import co.casterlabs.flv4j.util.ASReader;
-import co.casterlabs.flv4j.util.ASSizer;
-import co.casterlabs.flv4j.util.ASWriter;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=newer%20expanded%20header-,Packets,-%5Bedit%5D
 //https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf
@@ -35,18 +34,15 @@ public record FLVTag(
     }
 
     @Override
-    public void serialize(OutputStream out) throws IOException {
-        ASWriter.u8(out, this.type.id);
-        ASWriter.u24(out, this.payloadSize);
+    public void serialize(ASWriter writer) throws IOException {
+        writer.u8(this.type.id);
+        writer.u24(this.payloadSize);
 
-//        byte[] timestampBytes = PrimitiveMarshall.BIG_ENDIAN.longToBytes(this.timestamp);
-//        out.write(timestampBytes, 5, 3);
-//        ASWriter.u8(out, timestampBytes[4]);
-        ASWriter.u24(out, (int) this.timestamp & 0xFFFFFF);
-        ASWriter.u8(out, (int) (this.timestamp >>> 24 & 0xFF)); // I hate this.
+        writer.u24((int) this.timestamp & 0xFFFFFF);
+        writer.u8((int) (this.timestamp >>> 24 & 0xFF)); // I hate this.
 
-        ASWriter.u24(out, this.streamId);
-        this.payload.serialize(out);
+        writer.u24(this.streamId);
+        this.payload.serialize(writer);
     }
 
     public static FLVTag parse(ASReader reader) throws IOException {
