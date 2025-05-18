@@ -4,13 +4,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
-
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=2
 public record ASWriter(
     OutputStream out
 ) {
-    private static final PrimitiveMarshall M = PrimitiveMarshall.BIG_ENDIAN;
 
     public void bytes(byte[] b) throws IOException {
         out.write(b);
@@ -25,35 +22,39 @@ public record ASWriter(
     }
 
     public void u16(int value) throws IOException {
-        out.write(
-            M.intToBytes(value),
-            2,
-            2
-        );
+        out.write(value >> 8 & 0xFF);
+        out.write(value & 0xFF);
     }
 
     public void s16(short value) throws IOException {
-        out.write(M.shortToBytes(value));
+        out.write(value >> 8 & 0xFF);
+        out.write(value & 0xFF);
     }
 
     public void u24(int value) throws IOException {
-        out.write(
-            M.intToBytes(value),
-            1,
-            3
-        );
+        out.write(value >> 16 & 0xFF);
+        out.write(value >> 8 & 0xFF);
+        out.write(value & 0xFF);
     }
 
     public void u32(long value) throws IOException {
-        out.write(
-            M.longToBytes(value),
-            4,
-            4
-        );
+        u8((int) value >> 24 & 0xFF);
+        u8((int) value >> 16 & 0xFF);
+        u8((int) value >> 8 & 0xFF);
+        u8((int) value & 0xFF);
     }
 
     public void dbl(double value) throws IOException {
-        out.write(M.doubleToBytes(value));
+        long bits = Double.doubleToRawLongBits(value);
+
+        u8((int) (bits >> 56 & 0xFF));
+        u8((int) (bits >> 48 & 0xFF));
+        u8((int) (bits >> 40 & 0xFF));
+        u8((int) (bits >> 32 & 0xFF));
+        u8((int) (bits >> 24 & 0xFF));
+        u8((int) (bits >> 16 & 0xFF));
+        u8((int) (bits >> 8 & 0xFF));
+        u8((int) (bits >> 0 & 0xFF));
     }
 
     public void utf8(String str) throws IOException {

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import co.casterlabs.commons.io.marshalling.PrimitiveMarshall;
 import co.casterlabs.commons.io.streams.LimitedInputStream;
 import co.casterlabs.flv4j.util.EndOfStreamException;
 
@@ -54,8 +53,15 @@ public record ASReader(
     }
 
     public double dbl() throws IOException {
-        byte[] bytes = bytes(Double.BYTES);
-        return PrimitiveMarshall.BIG_ENDIAN.bytesToDouble(bytes);
+        long bits = (long) u8() << 56
+            | (long) u8() << 48
+            | (long) u8() << 40
+            | (long) u8() << 32
+            | (long) u8() << 24
+            | (long) u8() << 16
+            | (long) u8() << 8
+            | (long) u8() << 0;
+        return Double.longBitsToDouble(bits);
     }
 
     public String utf8() throws IOException {
