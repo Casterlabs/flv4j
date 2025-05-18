@@ -27,7 +27,14 @@ public record ASReader(
     /* -------------------- */
 
     public byte[] bytes(int len) throws IOException {
-        return in.readNBytes(len);
+        byte[] buf = new byte[len];
+        int total = 0;
+        while (total < len) {
+            int read = in.read(buf, total, len - total);
+            if (read == -1) throw new EndOfStreamException("End of stream");
+            total += read;
+        }
+        return buf;
     }
 
     public int u8() throws IOException {
