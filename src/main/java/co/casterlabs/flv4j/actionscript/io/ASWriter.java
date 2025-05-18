@@ -37,6 +37,37 @@ public record ASWriter(
         out.write(value & 0xFF);
     }
 
+    public void u29(int value) throws IOException {
+        // We could use a loop here, but we might as well unroll it.
+
+        // Single byte: (0-127) (inclusive)
+        if (value < 128) {
+            u8(value);
+            return;
+        }
+
+        // Two bytes: 128-16383 (inclusive)
+        if (value < 16384) {
+            u8(value >> 7 & 0x7F | 0x80);
+            u8(value & 0x7F);
+            return;
+        }
+
+        // Three bytes: 16384-2097151 (inclusive)
+        if (value < 2097152) {
+            u8(value >> 14 & 0x7F | 0x80);
+            u8(value >> 7 & 0x7F | 0x80);
+            u8(value & 0x7F);
+            return;
+        }
+
+        // Four bytes: 2097152-536870911 (inclusive)
+        u8(value >> 22 & 0x7F | 0x80);
+        u8(value >> 15 & 0x7F | 0x80);
+        u8(value >> 8 & 0x7F | 0x80); // NB: All 8 bits are used in the final byte, so we DO NOT shift by 7 here.
+        u8(value & 0xFF);
+    }
+
     public void u32(long value) throws IOException {
         u8((int) value >> 24 & 0xFF);
         u8((int) value >> 16 & 0xFF);

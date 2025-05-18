@@ -55,6 +55,30 @@ public record ASReader(
         return u8() << 16 | u8() << 8 | u8();
     }
 
+    public int u29() throws IOException {
+        int b1 = u8();
+        int result = b1 & 0x7F;
+        if ((b1 & 0x80) == 0) {
+            return result;
+        }
+
+        int b2 = u8();
+        result = (result << 7) | (b2 & 0x7F);
+        if ((b2 & 0x80) == 0) {
+            return result;
+        }
+
+        int b3 = u8();
+        result = (result << 7) | (b3 & 0x7F);
+        if ((b3 & 0x80) == 0) {
+            return result;
+        }
+
+        // NB: All 8 bits are used in the final byte, so we DO NOT shift by 7.
+        int b4 = u8();
+        return (result << 8) | b4;
+    }
+
     public long u32() throws IOException {
         return u8() << 24 | u8() << 16 | u8() << 8 | u8();
     }

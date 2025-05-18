@@ -30,6 +30,30 @@ public class ASSizer {
         return this;
     }
 
+    public ASSizer u29(int value) {
+        // Single byte: (0-127) (inclusive)
+        if (value < 128) {
+            this.size += 1;
+            return this;
+        }
+
+        // Two bytes: 128-16383 (inclusive)
+        if (value < 16384) {
+            this.size += 2;
+            return this;
+        }
+
+        // Three bytes: 16384-2097151 (inclusive)
+        if (value < 2097152) {
+            this.size += 3;
+            return this;
+        }
+
+        // Four bytes: 2097152-536870911 (inclusive)
+        this.size += 4;
+        return this;
+    }
+
     public ASSizer u32() {
         this.size += 4;
         return this;
