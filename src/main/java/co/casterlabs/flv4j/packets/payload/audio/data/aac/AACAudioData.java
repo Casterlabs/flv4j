@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.packets.payload.audio.data.aac;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -12,6 +13,13 @@ public record AACAudioData(
     int rawType,
     AACAudioFrame frame
 ) implements AudioData {
+
+    public AACAudioData(int rawType, AACAudioFrame frame) {
+        ASAssert.u8(rawType, "rawType");
+        assert frame != null : "frame cannot be null";
+        this.rawType = rawType;
+        this.frame = frame;
+    }
 
     public AACAudioDataType type() {
         return AACAudioDataType.LUT[this.rawType];

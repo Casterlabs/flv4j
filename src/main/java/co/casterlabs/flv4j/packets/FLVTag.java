@@ -3,6 +3,7 @@ package co.casterlabs.flv4j.packets;
 import java.io.IOException;
 
 import co.casterlabs.flv4j.FLVSerializable;
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -16,11 +17,21 @@ import co.casterlabs.flv4j.packets.payload.video.FLVVideoPayload;
 //https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf
 public record FLVTag(
     FLVTagType type,
-    int payloadSize,
     long timestamp,
     int streamId,
     FLVPayload payload
 ) implements FLVSerializable {
+
+    public FLVTag(FLVTagType type, long timestamp, int streamId, FLVPayload payload) {
+        assert type != null : "type cannot be null";
+        assert payload != null : "payload cannot be null";
+        ASAssert.u32(timestamp, "timestamp");
+        ASAssert.u24(streamId, "streamId");
+        this.type = type;
+        this.timestamp = timestamp;
+        this.streamId = streamId;
+        this.payload = payload;
+    }
 
     @Override
     public int size() {
@@ -30,13 +41,13 @@ public record FLVTag(
             .u24()
             .u8()
             .u24()
-            .bytes(payloadSize).size;
+            .bytes(this.payload.size()).size;
     }
 
     @Override
     public void serialize(ASWriter writer) throws IOException {
         writer.u8(this.type.id);
-        writer.u24(this.payloadSize);
+        writer.u24(this.payload.size());
 
         writer.u24((int) this.timestamp & 0xFFFFFF);
         writer.u8((int) (this.timestamp >>> 24 & 0xFF)); // I hate this.
@@ -65,7 +76,6 @@ public record FLVTag(
 
         return new FLVTag(
             FLVTagType.LUT[packetType],
-            payloadLen,
             timestamp,
             streamId,
             payload
@@ -75,9 +85,8 @@ public record FLVTag(
     @Override
     public final String toString() {
         return String.format(
-            "FLVTag[packetType=%s, payloadSize=%d, timestamp=%d, streamId=%d, payload=[%s], size=%d]",
+            "FLVTag[packetType=%s, timestamp=%d, streamId=%d, payload=[%s], size=%d]",
             this.type,
-            this.payloadSize,
             this.timestamp,
             this.streamId,
             this.payload,

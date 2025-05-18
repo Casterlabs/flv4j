@@ -1,10 +1,16 @@
 package co.casterlabs.flv4j.packets.payload;
 
 import co.casterlabs.flv4j.FLVRawSerializable;
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 
 public record FLVUnknownPayload(
     byte[] raw
 ) implements FLVPayload, FLVRawSerializable {
+
+    public FLVUnknownPayload(byte[] raw) {
+        ASAssert.u24(raw.length, "raw.length");
+        this.raw = raw;
+    }
 
     @Override
     public boolean isSequenceHeader() {

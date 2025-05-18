@@ -5,10 +5,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import co.casterlabs.commons.io.streams.StreamUtil;
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 
 class _Media {
 
     static {
+        ASAssert.class.getClassLoader().setPackageAssertionStatus("co.casterlabs.flv4j", true);
+
         try {
             String licenseInfo = StreamUtil.toString(
                 _Media.class.getClassLoader()

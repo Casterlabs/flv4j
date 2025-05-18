@@ -47,11 +47,9 @@ public class StreamFLVMuxer {
             tag = new FLVTag(
                 // Modify the tag with our new ts offset.
                 tag.type(),
-                tag.payloadSize(),
                 Math.max(tag.timestamp() + this.timestampOffset, 0), // Min. value of 0!
                 tag.streamId(),
                 tag.payload()
-//                tag.payload().clone() // Useful for testing raw() generation.
             );
         }
 

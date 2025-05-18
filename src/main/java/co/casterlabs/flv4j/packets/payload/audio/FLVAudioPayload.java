@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.packets.payload.audio;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -19,6 +20,19 @@ public record FLVAudioPayload(
     int rawChannels,
     AudioData data
 ) implements FLVPayload {
+
+    public FLVAudioPayload(int rawFormat, int rawRate, int rawSampleSize, int rawChannels, AudioData data) {
+        ASAssert.u4(rawFormat, "rawFormat");
+        ASAssert.u2(rawRate, "rawRate");
+        ASAssert.bit(rawSampleSize, "rawSampleSize");
+        ASAssert.bit(rawChannels, "rawChannels");
+        assert data != null : "data cannot be null";
+        this.rawFormat = rawFormat;
+        this.rawRate = rawRate;
+        this.rawSampleSize = rawSampleSize;
+        this.rawChannels = rawChannels;
+        this.data = data;
+    }
 
     public boolean isExHeader() {
         return this.rawFormat == 9;

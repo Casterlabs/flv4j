@@ -3,6 +3,7 @@ package co.casterlabs.flv4j.actionscript.amf0;
 import java.io.IOException;
 import java.util.Map;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
@@ -10,6 +11,11 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record ECMAArray0(
     Map<String, AMF0Type> map
 ) implements AMF0Type {
+
+    public ECMAArray0(Map<String, AMF0Type> map) {
+        ASAssert.u32(map.size(), "map size");
+        this.map = map;
+    }
 
     @Override
     public boolean isComplex() {

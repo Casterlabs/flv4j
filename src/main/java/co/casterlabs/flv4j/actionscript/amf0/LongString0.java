@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.actionscript.amf0;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -10,6 +11,11 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record LongString0(
     String value
 ) implements AMF0Type {
+
+    public LongString0(String value) {
+        ASAssert.u32(value.length(), "string length");
+        this.value = value;
+    }
 
     @Override
     public Type type() {

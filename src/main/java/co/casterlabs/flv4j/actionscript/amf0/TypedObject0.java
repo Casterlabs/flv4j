@@ -12,6 +12,13 @@ public record TypedObject0(
     Map<String, AMF0Type> map
 ) implements AMF0Type {
 
+    public TypedObject0(String className, Map<String, AMF0Type> map) {
+        assert className != null : "className cannot be null";
+        assert map != null : "map cannot be null";
+        this.className = className;
+        this.map = map;
+    }
+
     @Override
     public boolean isComplex() {
         return true;

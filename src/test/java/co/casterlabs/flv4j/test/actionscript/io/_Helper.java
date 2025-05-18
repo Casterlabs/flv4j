@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import lombok.SneakyThrows;
@@ -15,6 +16,10 @@ class _Helper {
 
     private static final ASWriter rwWriter = new ASWriter(reWriterDest);
     private static final ASReader rwReader = new ASReader(rwReaderSrc);
+
+    static {
+        ASAssert.class.getClassLoader().setPackageAssertionStatus("co.casterlabs.flv4j", true);
+    }
 
     @SneakyThrows
     public static synchronized byte[] rw(Action action) {

@@ -16,6 +16,10 @@ public record FLVScriptPayload(
     ECMAArray0 value
 ) implements FLVPayload {
 
+    public FLVScriptPayload(String method, ECMAArray0 value) {
+        this(new String0(method), value);
+    }
+
     public String methodName() {
         return this.method().value();
     }

@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.packets.payload.video;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -18,6 +19,15 @@ public record FLVVideoPayload(
     int rawCodec,
     VideoData data
 ) implements FLVPayload {
+
+    public FLVVideoPayload(int rawFrameType, int rawCodec, VideoData data) {
+        ASAssert.u4(rawFrameType, "rawFrameType");
+        ASAssert.u4(rawCodec, "rawCodec");
+        assert data != null : "data cannot be null";
+        this.rawFrameType = rawFrameType;
+        this.rawCodec = rawCodec;
+        this.data = data;
+    }
 
     public boolean isExHeader() {
         return (this.rawFrameType & 0b1000) != 0;

@@ -12,6 +12,13 @@ public record StrictArray0(
     AMF0Type[] array
 ) implements AMF0Type {
 
+    public StrictArray0(AMF0Type[] array) {
+        // Bounds are already checked by Java's (signed) int limit.
+        // Unfortunately we can't create arrays larger than that :/
+        assert array != null : "array cannot be null";
+        this.array = array;
+    }
+
     @Override
     public boolean isComplex() {
         return true;

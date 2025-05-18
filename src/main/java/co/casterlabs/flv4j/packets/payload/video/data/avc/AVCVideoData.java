@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.packets.payload.video.data.avc;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -13,6 +14,15 @@ public record AVCVideoData(
     int compositionTime,
     AVCVideoFrame frame
 ) implements VideoData {
+
+    public AVCVideoData(int rawType, int compositionTime, AVCVideoFrame frame) {
+        ASAssert.u8(rawType, "rawType");
+        ASAssert.u24(compositionTime, "compositionTime");
+        assert frame != null : "frame cannot be null";
+        this.rawType = rawType;
+        this.compositionTime = compositionTime;
+        this.frame = frame;
+    }
 
     public AVCVideoDataType type() {
         return AVCVideoDataType.LUT[this.rawType];

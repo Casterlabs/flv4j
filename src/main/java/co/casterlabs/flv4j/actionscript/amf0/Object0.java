@@ -11,6 +11,11 @@ public record Object0(
     Map<String, AMF0Type> map
 ) implements AMF0Type {
 
+    public Object0(Map<String, AMF0Type> map) {
+        assert map != null : "map cannot be null";
+        this.map = map;
+    }
+
     @Override
     public boolean isComplex() {
         return true;

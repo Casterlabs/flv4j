@@ -18,10 +18,12 @@ public record ASWriter(
     }
 
     public void u8(int value) throws IOException {
+        ASAssert.u8(value, "value");
         out.write(value);
     }
 
     public void u16(int value) throws IOException {
+        ASAssert.u16(value, "value");
         out.write(value >> 8 & 0xFF);
         out.write(value & 0xFF);
     }
@@ -31,12 +33,14 @@ public record ASWriter(
     }
 
     public void u24(int value) throws IOException {
+        ASAssert.u24(value, "value");
         out.write(value >> 16 & 0xFF);
         out.write(value >> 8 & 0xFF);
         out.write(value & 0xFF);
     }
 
     public void u29(int value) throws IOException {
+        ASAssert.u29(value, "value");
         // We could use a loop here, but we might as well unroll it.
 
         // Single byte: (0-127) (inclusive)
@@ -68,6 +72,7 @@ public record ASWriter(
     }
 
     public void u32(long value) throws IOException {
+        ASAssert.u32(value, "value");
         u8((int) value >> 24 & 0xFF);
         u8((int) value >> 16 & 0xFF);
         u8((int) value >> 8 & 0xFF);
@@ -89,14 +94,12 @@ public record ASWriter(
 
     public void utf8(String str) throws IOException {
         byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
-
         u16(strBytes.length);
         out.write(strBytes);
     }
 
     public void utf8long(String str) throws IOException {
         byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
-
         u32(strBytes.length);
         out.write(strBytes);
     }

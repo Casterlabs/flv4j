@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import co.casterlabs.flv4j.FLVSerializable;
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
@@ -17,6 +18,14 @@ public record FLVFileHeader(
 ) implements FLVSerializable {
 
     private static final byte[] MAGIC = "FLV".getBytes(StandardCharsets.US_ASCII);
+
+    public FLVFileHeader(int version, int flags, byte[] expandedHeaderData) {
+        ASAssert.u8(version, "version");
+        ASAssert.u8(flags, "flags");
+        this.version = version;
+        this.flags = flags;
+        this.expandedHeaderData = expandedHeaderData;
+    }
 
     public boolean isAudio() {
         return (this.flags & 0x04) != 0;
