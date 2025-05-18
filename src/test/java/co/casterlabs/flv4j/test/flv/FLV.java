@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.test;
+package co.casterlabs.flv4j.test.flv;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,17 +13,16 @@ import co.casterlabs.flv4j.muxing.NonSeekableFLVDemuxer;
 import co.casterlabs.flv4j.muxing.StreamFLVMuxer;
 import co.casterlabs.flv4j.packets.FLVFileHeader;
 import co.casterlabs.flv4j.packets.FLVTag;
-import co.casterlabs.flv4j.test.util.Media;
 import lombok.SneakyThrows;
 
-public class Muxing {
+public class FLV {
 
     /**
      * To pass, this test MUST demux a source file invoke the onHeader, onTag and
      * onEnd callbacks.
      */
     @Test
-    void demuxerCallbacks() throws IOException {
+    public void demuxerCallbacks() throws IOException {
         boolean[] $results = { // Pointer hax.
                 false, // Found header.
                 false, // Found tag.
@@ -45,7 +44,7 @@ public class Muxing {
             protected void onEnd() {
                 $results[2] = true;
             }
-        }.start(Media.stream());
+        }.start(_Media.stream());
 
         assertTrue($results[0], "Header not found.");
         assertTrue($results[1], "Tag(s) not found.");
@@ -56,8 +55,8 @@ public class Muxing {
      * To pass, this test MUST mux a bit-exact copy of it's input.
      */
     @Test
-    void correctness() throws IOException {
-        byte[] src = Media.bytes();
+    public void correctness() throws IOException {
+        byte[] src = _Media.bytes();
         ByteArrayOutputStream cpy = new ByteArrayOutputStream();
 
         new NonSeekableFLVDemuxer() {

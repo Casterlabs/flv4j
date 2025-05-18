@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.test.util;
+package co.casterlabs.flv4j.test.actionscript.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,7 +9,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import lombok.SneakyThrows;
 
-public class ASIOAction {
+class _Helper {
     private static final ByteArrayOutputStream reWriterDest = new ByteArrayOutputStream();
     private static final LateInputStream rwReaderSrc = new LateInputStream();
 
