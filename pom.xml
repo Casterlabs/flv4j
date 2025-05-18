@@ -124,6 +124,7 @@
 			<groupId>co.casterlabs.commons</groupId>
 			<artifactId>io</artifactId>
 			<version>1.9.0</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 </project>
