@@ -27,8 +27,7 @@ public record ASWriter(
     }
 
     public void s16(short value) throws IOException {
-        out.write(value >> 8 & 0xFF);
-        out.write(value & 0xFF);
+        u16(value & 0xFFFF);
     }
 
     public void u24(int value) throws IOException {

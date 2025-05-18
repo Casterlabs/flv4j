@@ -48,7 +48,7 @@ public record ASReader(
     }
 
     public short s16() throws IOException {
-        return (short) (u8() << 8 | u8());
+        return (short) u16();
     }
 
     public int u24() throws IOException {
