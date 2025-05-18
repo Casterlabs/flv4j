@@ -17,19 +17,21 @@ public class ActionScriptIO {
 
     @Test
     void u8() throws IOException {
+        int EXPECTED = BITS & 0xFF;
         ASIOAction.rw((writer, reader) -> {
-            writer.u8(BITS & 0xFF);
+            writer.u8(EXPECTED);
             int read = reader.u8();
-            assertEquals(BITS & 0xFF, read);
+            assertEquals(EXPECTED, read);
         });
     }
 
     @Test
     void u16() throws IOException {
+        final int EXPECTED = BITS & 0xFFFF;
         ASIOAction.rw((writer, reader) -> {
-            writer.u16(BITS & 0xFFFF);
+            writer.u16(EXPECTED);
             int read = reader.u16();
-            assertEquals(BITS & 0xFFFF, read);
+            assertEquals(EXPECTED, read);
         });
     }
 
@@ -45,19 +47,21 @@ public class ActionScriptIO {
 
     @Test
     void u24() throws IOException {
+        final int EXPECTED = BITS & 0xFFFFFF;
         ASIOAction.rw((writer, reader) -> {
-            writer.u24(BITS & 0xFFFFFF);
+            writer.u24(EXPECTED);
             int read = reader.u24();
-            assertEquals(BITS & 0xFFFFFF, read);
+            assertEquals(EXPECTED, read);
         });
     }
 
     @Test
     void u32() throws IOException {
+        final int EXPECTED = BITS & 0xFFFFFFFF;
         ASIOAction.rw((writer, reader) -> {
-            writer.u32(BITS);
+            writer.u32(EXPECTED);
             long read = reader.u32();
-            assertEquals(BITS, read);
+            assertEquals(EXPECTED, read);
         });
     }
 
@@ -72,21 +76,21 @@ public class ActionScriptIO {
 
     @Test
     void utf8() throws IOException {
+        final String EXPECTED = stroflen(123);
         ASIOAction.rw((writer, reader) -> {
-            final String VALUE = str(12);
-            writer.utf8(VALUE);
+            writer.utf8(EXPECTED);
             String read = reader.utf8();
-            assertEquals(VALUE, read);
+            assertEquals(EXPECTED, read);
         });
     }
 
     @Test
     void utf8long() throws IOException {
+        final String EXPECTED = stroflen(0xFFFF + 1); // >u16 limit.
         ASIOAction.rw((writer, reader) -> {
-            final String VALUE = str(0xFFFF + 1); // >u16 limit.
-            writer.utf8long(VALUE);
+            writer.utf8long(EXPECTED);
             String read = reader.utf8long();
-            assertEquals(VALUE, read);
+            assertEquals(EXPECTED, read);
         });
     }
 
@@ -99,7 +103,7 @@ public class ActionScriptIO {
         });
     }
 
-    private static String str(int len) {
+    private static String stroflen(int len) {
         char[] str = new char[len];
         Arrays.fill(str, 'a');
         return new String(str);
