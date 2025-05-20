@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import co.casterlabs.commons.io.streams.LimitedInputStream;
-import co.casterlabs.flv4j.util.EndOfStreamException;
+import co.casterlabs.flv4j.EndOfStreamException;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=2
 // https://rtmp.veriskope.com/pdf/amf3-file-format-spec.pdf#page=3 for u29

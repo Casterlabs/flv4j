@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import co.casterlabs.flv4j.FLVSerializable;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
-import co.casterlabs.flv4j.muxing.NonSeekableFLVDemuxer;
-import co.casterlabs.flv4j.packets.FLVFileHeader;
-import co.casterlabs.flv4j.packets.FLVTag;
+import co.casterlabs.flv4j.flv.muxing.NonSeekableFLVDemuxer;
+import co.casterlabs.flv4j.flv.packets.FLVFileHeader;
+import co.casterlabs.flv4j.flv.packets.FLVTag;
 import lombok.SneakyThrows;
 
 public class FLVTypes {
