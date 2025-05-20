@@ -80,7 +80,10 @@ public record ASReader(
     }
 
     public long u32() throws IOException {
-        return u8() << 24 | u8() << 16 | u8() << 8 | u8();
+        return (long) u8() << 24
+            | (long) u8() << 16
+            | (long) u8() << 8
+            | (long) u8() << 0;
     }
 
     public double dbl() throws IOException {
