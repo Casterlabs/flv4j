@@ -79,6 +79,14 @@ public record ASWriter(
         u8((int) value & 0xFF);
     }
 
+    public void u32le(long value) throws IOException {
+        ASAssert.u32(value, "value");
+        u8((int) value & 0xFF);
+        u8((int) value >> 8 & 0xFF);
+        u8((int) value >> 16 & 0xFF);
+        u8((int) value >> 24 & 0xFF);
+    }
+
     public void dbl(double value) throws IOException {
         long bits = Double.doubleToRawLongBits(value);
 

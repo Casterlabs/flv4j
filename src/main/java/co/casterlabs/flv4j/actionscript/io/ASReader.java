@@ -86,6 +86,13 @@ public record ASReader(
             | (long) u8() << 0;
     }
 
+    public long u32le() throws IOException {
+        return (long) u8() << 0
+            | (long) u8() << 8
+            | (long) u8() << 16
+            | (long) u8() << 24;
+    }
+
     public double dbl() throws IOException {
         long bits = (long) u8() << 56
             | (long) u8() << 48
