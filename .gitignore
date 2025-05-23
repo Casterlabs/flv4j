@@ -16,3 +16,5 @@ test.flv
 test_enhanced.flv
 src/test/java/co/casterlabs/flv4j/test/old
 copy.flv
+server.bin
+client.bin
