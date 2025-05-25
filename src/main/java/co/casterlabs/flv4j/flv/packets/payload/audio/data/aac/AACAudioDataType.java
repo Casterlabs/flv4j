@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.flv.packets.payload.audio.data.aac;
 
 import lombok.AllArgsConstructor;
 
-//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=10
+// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=12
 @AllArgsConstructor
 public enum AACAudioDataType {
     SEQUENCE(0),
