@@ -7,12 +7,17 @@ import java.nio.charset.StandardCharsets;
 
 import co.casterlabs.commons.io.streams.LimitedInputStream;
 import co.casterlabs.flv4j.EndOfStreamException;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=2
 // https://rtmp.veriskope.com/pdf/amf3-file-format-spec.pdf#page=3 for u29
-public record ASReader(
-    InputStream in
-) {
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public class ASReader {
+    private final InputStream in;
+    private @Getter int bytesRead = 0;
 
     public ASReader(byte[] b) {
         this(new ByteArrayInputStream(b));
@@ -34,11 +39,13 @@ public record ASReader(
             if (read == -1) throw new EndOfStreamException("End of stream");
             total += read;
         }
+        this.bytesRead += len;
         return buf;
     }
 
     public int u8() throws IOException {
         int read = in.read();
+        this.bytesRead++;
         if (read == -1) throw new EndOfStreamException("End of stream");
         return read;
     }
@@ -118,6 +125,7 @@ public record ASReader(
     }
 
     public ASReader limited(int len) {
+        this.bytesRead += len;
         return new ASReader(new LimitedInputStream(this.in, len));
     }
 
