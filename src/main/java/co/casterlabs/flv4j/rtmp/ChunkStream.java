@@ -19,7 +19,8 @@ class ChunkStream {
 
     private final ASReader reader;
 
-    public @Nullable RTMPChunk<?> read(long previousTimestamp, int format, int csId, int chunkSize) throws IOException {
+    @Nullable
+    RTMPChunk<?> read(long previousTimestamp, int format, int csId, int chunkSize) throws IOException {
         long timestamp = previousTimestamp;
         int messageLength = this.previousMessageLength;
         int messageTypeId = this.previousMessageTypeId;
