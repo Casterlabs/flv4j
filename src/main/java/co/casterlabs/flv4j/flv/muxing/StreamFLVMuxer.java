@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
-import co.casterlabs.flv4j.flv.packets.FLVFileHeader;
-import co.casterlabs.flv4j.flv.packets.FLVTag;
+import co.casterlabs.flv4j.flv.FLVFileHeader;
+import co.casterlabs.flv4j.flv.tags.FLVTag;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -49,7 +49,7 @@ public class StreamFLVMuxer {
                 tag.type(),
                 Math.max(tag.timestamp() + this.timestampOffset, 0), // Min. value of 0!
                 tag.streamId(),
-                tag.payload()
+                tag.data()
             );
         }
 

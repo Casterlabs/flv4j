@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
-import co.casterlabs.flv4j.flv.packets.payload.video.FLVVideoPayload;
+import co.casterlabs.flv4j.flv.tags.video.FLVVideoPayload;
 
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=26
 public record RTMPMessageVideo(FLVVideoPayload payload) implements RTMPMessage {

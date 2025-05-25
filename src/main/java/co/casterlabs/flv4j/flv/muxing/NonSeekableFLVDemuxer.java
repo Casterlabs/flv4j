@@ -5,8 +5,8 @@ import java.io.InputStream;
 
 import co.casterlabs.flv4j.EndOfStreamException;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
-import co.casterlabs.flv4j.flv.packets.FLVFileHeader;
-import co.casterlabs.flv4j.flv.packets.FLVTag;
+import co.casterlabs.flv4j.flv.FLVFileHeader;
+import co.casterlabs.flv4j.flv.tags.FLVTag;
 import lombok.Getter;
 import lombok.NonNull;
 

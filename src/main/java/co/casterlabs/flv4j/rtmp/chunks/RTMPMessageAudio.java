@@ -4,10 +4,10 @@ import java.io.IOException;
 
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
-import co.casterlabs.flv4j.flv.packets.payload.audio.FLVAudioPayload;
+import co.casterlabs.flv4j.flv.tags.audio.FLVAudioTagData;
 
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=26
-public record RTMPMessageAudio(FLVAudioPayload payload) implements RTMPMessage {
+public record RTMPMessageAudio(FLVAudioTagData payload) implements RTMPMessage {
 
     @Override
     public int rawType() {
@@ -25,7 +25,7 @@ public record RTMPMessageAudio(FLVAudioPayload payload) implements RTMPMessage {
     }
 
     public static RTMPMessageAudio parse(ASReader reader, int length) throws IOException {
-        FLVAudioPayload payload = FLVAudioPayload.parse(reader, length);
+        FLVAudioTagData payload = FLVAudioTagData.parse(reader, length);
         return new RTMPMessageAudio(payload);
     }
 
