@@ -7,9 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.flv.tags.FLVTagData;
-import co.casterlabs.flv4j.flv.tags.video.data.UnknownVideoData;
 import co.casterlabs.flv4j.flv.tags.video.data.VideoData;
-import co.casterlabs.flv4j.flv.tags.video.data.avc.AVCVideoData;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
@@ -52,7 +50,8 @@ public record FLVVideoPayload(
         }
 
         return switch (this.codec()) {
-            case H264 -> ((AVCVideoData) this.data).rawType() == 0;
+//          case H264 -> ((AVCVideoData) this.data).rawType() == 0;
+            case H264 -> this.data.raw()[0] == 0;
             default -> false; // TODO properly parse out the data.
         };
     }
@@ -78,8 +77,8 @@ public record FLVVideoPayload(
 
         int dataLen = length - 1;
         VideoData data = switch (codecId) {
-            case 7 -> AVCVideoData.parse(reader.limited(dataLen), dataLen);
-            default -> new UnknownVideoData(reader.bytes(dataLen));
+//            case 7 -> AVCVideoData.parse(reader.limited(dataLen), dataLen);
+            default -> new VideoData(reader.bytes(dataLen));
         };
 
         return new FLVVideoPayload(
