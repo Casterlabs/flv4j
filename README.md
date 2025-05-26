@@ -36,7 +36,7 @@ Our in-house library for FLV, RTMP and AMF.
     - ✅ Sample Rate
     - ✅ Sample Size
     - ✅ Audio Channels
-  - ➖ [Enhanced Header](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
+  - ✅ [Enhanced Header](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
     - ✅ Type
     - ✅ Modifiers
     - ✅ Multitrack
