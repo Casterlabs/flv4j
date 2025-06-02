@@ -14,10 +14,9 @@ import lombok.RequiredArgsConstructor;
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf
 @RequiredArgsConstructor
 public class RTMPWriter {
+    private final byte[] handshakeRandom = new byte[RTMPHandshake1.RANDOM_SIZE];
     private final ASWriter writer;
 
-    private byte[] handshakeRandom = new byte[RTMPHandshake1.RANDOM_SIZE];
-    private long epoch = System.currentTimeMillis();
     private int chunkSize = 128;
 
     public void handshake0() throws IOException {
@@ -41,9 +40,9 @@ public class RTMPWriter {
         return Arrays.equals(hs.randomEcho(), this.handshakeRandom);
     }
 
-    public void write(int chunkStreamId, long messageStreamId, RTMPMessage message) throws IOException {
+    public void write(int chunkStreamId, long messageStreamId, int timestamp, RTMPMessage message) throws IOException {
         int size = message.size();
-        this.writeChunkHeader(0, chunkStreamId, messageStreamId, size, message.rawType());
+        this.writeChunkHeader(0, chunkStreamId, messageStreamId, timestamp, size, message.rawType());
 
         if (message.size() > this.chunkSize) {
             // Chunking!
@@ -53,7 +52,7 @@ public class RTMPWriter {
 
             int offset = this.chunkSize;
             while (b.length - offset > 0) {
-                this.writeChunkHeader(3, chunkStreamId, messageStreamId, size, message.rawType());
+                this.writeChunkHeader(3, chunkStreamId, messageStreamId, timestamp, size, message.rawType());
                 int toWrite = Math.min(b.length - offset, this.chunkSize);
                 this.writer.bytes(b, offset, toWrite);
                 offset += toWrite;
@@ -63,15 +62,15 @@ public class RTMPWriter {
         }
     }
 
-    private void writeChunkHeader(int format, int csId, long msId, int messageLength, int messageTypeId) throws IOException {
+    private void writeChunkHeader(int format, int csId, long msId, int timestamp, int messageLength, int messageTypeId) throws IOException {
         int fb = format << 6 | (csId & 0b00111111); // TODO 2/3 byte extensions
         this.writer.u8(fb);
-
-        int now = (int) ((this.epoch - System.currentTimeMillis()) & 0xFFFFFF);
 
         switch (format) {
             case 0:
                 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+                int now = timestamp % 0xFFFFFF;
+
                 this.writer.u24(now);
                 this.writer.u24(messageLength);
                 this.writer.u8(messageTypeId);
