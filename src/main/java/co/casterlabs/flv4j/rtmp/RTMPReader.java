@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class RTMPReader {
     private final ASReader reader;
 
-    private long previousTimestamp;
+    private int previousTimestamp;
     private int chunkSize = 128;
     private Map<Integer, ChunkStream> chunkStreams = new HashMap<>();
 

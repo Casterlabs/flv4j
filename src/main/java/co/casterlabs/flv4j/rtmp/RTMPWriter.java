@@ -3,9 +3,12 @@ package co.casterlabs.flv4j.rtmp;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.ReentrantLock;
 
+import co.casterlabs.flv4j.FLVSerializable;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake0;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
@@ -14,8 +17,19 @@ import lombok.RequiredArgsConstructor;
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf
 @RequiredArgsConstructor
 public class RTMPWriter {
+    public static final long CONTROL_MSID = 0;
+    public static final int CONTROL_CSID = 2;
+
     private final byte[] handshakeRandom = new byte[RTMPHandshake1.RANDOM_SIZE];
     private final ASWriter writer;
+
+    private final ReentrantLock writeLock = new ReentrantLock();
+    private final ChunkWriter[] chunkWriters = {
+            new ChunkWriter(CONTROL_CSID + 0), // control
+            new ChunkWriter(CONTROL_CSID + 1), // audio
+            new ChunkWriter(CONTROL_CSID + 2), // video
+            new ChunkWriter(CONTROL_CSID + 3)  // other
+    };
 
     private int chunkSize = 128;
 
@@ -40,48 +54,119 @@ public class RTMPWriter {
         return Arrays.equals(hs.randomEcho(), this.handshakeRandom);
     }
 
-    public void write(int chunkStreamId, long messageStreamId, int timestamp, RTMPMessage message) throws IOException {
-        int size = message.size();
-        this.writeChunkHeader(0, chunkStreamId, messageStreamId, timestamp, size, message.rawType());
+    public void write(long msId, int timestamp, RTMPMessage message) throws IOException {
+        if (message instanceof RTMPMessageChunkSize chunkSize) {
+            this.chunkSize = chunkSize.chunkSize();
+        }
 
-        if (message.size() > this.chunkSize) {
-            // Chunking!
-            byte[] b = message.raw();
-
-            this.writer.bytes(b, 0, this.chunkSize);
-
-            int offset = this.chunkSize;
-            while (b.length - offset > 0) {
-                this.writeChunkHeader(3, chunkStreamId, messageStreamId, timestamp, size, message.rawType());
-                int toWrite = Math.min(b.length - offset, this.chunkSize);
-                this.writer.bytes(b, offset, toWrite);
-                offset += toWrite;
-            }
+        ChunkWriter writer;
+        if (msId == CONTROL_MSID) {
+            writer = this.chunkWriters[0]; // we MUST send this over the control stream.
+        } else if (message.rawType() == 8) {
+            writer = this.chunkWriters[1]; // audio
+        } else if (message.rawType() == 9) {
+            writer = this.chunkWriters[2]; // video
         } else {
-            message.serialize(this.writer);
+            writer = this.chunkWriters[3]; // other
+        }
+
+        writer.write(msId, timestamp, message);
+    }
+
+    @RequiredArgsConstructor
+    private class ChunkWriter {
+        private final int chunkStreamId;
+        private final ReentrantLock chunkLock = new ReentrantLock();
+
+        private void write(long messageStreamId, int timestamp, RTMPMessage message) throws IOException {
+            this.chunkLock.lock();
+            try {
+                int size = message.size();
+
+                if (size <= chunkSize) {
+                    // We can fit it in a single chunk!
+                    write0(this.chunkStreamId, messageStreamId, timestamp, size, message.rawType(), message);
+                    return;
+                }
+
+                // Chunking!
+                byte[] b = message.raw();
+                write0(this.chunkStreamId, messageStreamId, timestamp, size, message.rawType(), b, 0, chunkSize);
+
+                int offset = chunkSize;
+                while (b.length - offset > 0) {
+                    int toWrite = Math.min(b.length - offset, chunkSize);
+                    write3(this.chunkStreamId, b, offset, chunkSize);
+                    offset += toWrite;
+                }
+            } finally {
+                this.chunkLock.unlock();
+            }
+        }
+
+    }
+
+    private void write0(int csId, long msId, int timestamp, int messageLength, int messageTypeId, byte[] bytes, int off, int len) throws IOException {
+        this.writeLock.lock();
+        try {
+            int fb = 0 << 6 | (csId & 0b00111111);
+
+            this.writer.u8(fb);
+            // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+            int ts24 = timestamp;
+            long ts32 = 0;
+            if (timestamp >= 0xFFFFFF) {
+                ts24 = 0xFFFFFF;
+                ts32 = timestamp % 0xFFFFFFFF;
+            }
+
+            this.writer.u24(ts24);
+            this.writer.u24(messageLength);
+            this.writer.u8(messageTypeId);
+            this.writer.u32le(msId);
+
+            if (ts24 == 0xFFFFFF) {
+                this.writer.u32(ts32);
+            }
+
+            this.writer.bytes(bytes, off, len);
+        } finally {
+            this.writeLock.unlock();
         }
     }
 
-    private void writeChunkHeader(int format, int csId, long msId, int timestamp, int messageLength, int messageTypeId) throws IOException {
-        int fb = format << 6 | (csId & 0b00111111); // TODO 2/3 byte extensions
-        this.writer.u8(fb);
+    private void write0(int csId, long msId, int timestamp, int messageLength, int messageTypeId, FLVSerializable ser) throws IOException {
+        this.writeLock.lock();
+        try {
+            int fb = 0 << 6 | (csId & 0b00111111);
 
-        switch (format) {
-            case 0:
-                // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
-                int now = timestamp % 0xFFFFFF;
+            this.writer.u8(fb);
+            // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+            int now = timestamp % 0xFFFFFF;
 
-                this.writer.u24(now);
-                this.writer.u24(messageLength);
-                this.writer.u8(messageTypeId);
-                this.writer.u32le(msId);
-                break;
+            this.writer.u24(now);
+            this.writer.u24(messageLength);
+            this.writer.u8(messageTypeId);
+            this.writer.u32le(msId);
 
-            case 3:
-                // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
-                // (reuse all previous values)
-                break;
+            ser.serialize(this.writer);
+        } finally {
+            this.writeLock.unlock();
+        }
+    }
 
+    private void write3(int csId, byte[] bytes, int off, int len) throws IOException {
+        this.writeLock.lock();
+        try {
+            int fb = 3 << 6 | (csId & 0b00111111);
+            this.writer.u8(fb);
+
+            // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
+            // (reuse all previous values)
+
+            this.writer.bytes(bytes, off, len);
+        } finally {
+            this.writeLock.unlock();
         }
     }
 

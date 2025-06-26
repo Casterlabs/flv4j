@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.rtmp.chunks;
 
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=13
 public record RTMPChunk<M extends RTMPMessage>(
-    long timestamp,
+    int timestamp,
     int chunkStreamId,
     int messageTypeId,
     long messageStreamId,
