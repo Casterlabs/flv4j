@@ -19,6 +19,10 @@ class ChunkStream {
 
     private final ASReader reader;
 
+    void abort() {
+        this.inProgress = null;
+    }
+
     @Nullable
     RTMPChunk<?> read(int previousTimestamp, int format, int csId, int chunkSize) throws IOException {
         int timestamp = previousTimestamp;
@@ -80,8 +84,11 @@ class ChunkStream {
         this.previousMessageTypeId = messageTypeId;
         this.previousMessageStreamId = messageStreamId;
 
+        // 2 is the abort message, we need to parse that FULLY even if the stream is in
+        // the middle of a chunk.
+
         RTMPMessage message;
-        if (messageLength > chunkSize) {
+        if (messageLength > chunkSize && messageTypeId != 2) {
             if (this.inProgress == null) {
                 this.inProgress = new ChunkInProgress(messageLength);
             }

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPChunk;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageAbort;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake0;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
@@ -56,6 +57,14 @@ public class RTMPReader {
 
         RTMPChunk<?> chunk = cs.read(this.previousTimestamp, format, csId, this.chunkSize);
         if (chunk == null) {
+            return null;
+        }
+
+        if (chunk.message() instanceof RTMPMessageAbort abort) {
+            ChunkStream stream = this.chunkStreams.get((int) abort.streamId());
+            if (stream != null) {
+                stream.abort();
+            }
             return null;
         }
 
