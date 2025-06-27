@@ -23,7 +23,7 @@ import co.casterlabs.flv4j.rtmp.net.NetConnection;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import co.casterlabs.flv4j.rtmp.net.RTMPConnection;
 
-public abstract class NetConnectionServer extends NetConnection {
+public abstract class ServerNetConnection extends NetConnection {
     private static final int DEFAULT_CHUNK_SIZE = 4096;
     private static final int DEFAULT_WINDOW_ACK_SIZE = 2500000;
 
@@ -32,7 +32,7 @@ public abstract class NetConnectionServer extends NetConnection {
     private AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved for control.
     Map<Integer, ServerNetStream> streams = new HashMap<>();
 
-    public NetConnectionServer(RTMPReader in, RTMPWriter out) {
+    public ServerNetConnection(RTMPReader in, RTMPWriter out) {
         this.conn = new RTMPConnection(in, out);
         this.conn.onCall = this::onCall;
         this.conn.onMessage = this::onMessage;

@@ -13,7 +13,7 @@ import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import co.casterlabs.flv4j.rtmp.net.NetStream;
 
 public abstract class ServerNetStream extends NetStream {
-    NetConnectionServer server;
+    ServerNetConnection server;
     int id;
 
     {
