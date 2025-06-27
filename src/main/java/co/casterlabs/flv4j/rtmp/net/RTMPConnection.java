@@ -51,13 +51,14 @@ public class RTMPConnection {
     }
 
     public void handshake() throws IOException, InterruptedException {
-        this.in.handshake0(); // Consume. Should always be version 3.
         this.out.handshake0();
-
-        RTMPHandshake1 handshake1 = this.in.handshake1();
         this.out.handshake1();
 
+        this.in.handshake0(); // Consume. Should always be version 3.
+
+        RTMPHandshake1 handshake1 = this.in.handshake1();
         this.out.handshake2(handshake1);
+
         RTMPHandshake2 handshake2 = this.in.handshake2();
 
         if (!this.out.validateHandshake2(handshake2)) {
