@@ -82,7 +82,13 @@ public abstract class NetConnectionServer extends NetConnection {
 
                     try {
                         AMF0Type[] response = this.onCall(msId, command.commandName().value(), args);
-                        if (response == null) continue; // void.
+                        if (command.transactionId().value() == 0) continue; // void.
+
+                        if (response == null) {
+                            response = new AMF0Type[] {
+                                    Null0.INSTANCE
+                            };
+                        }
 
                         this.sendMessage(
                             msId,
