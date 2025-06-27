@@ -36,6 +36,7 @@ public record RTMPMessageSetPeerBandwidth(long windowSize, int rawLimitType) imp
     @Override
     public void serialize(ASWriter writer) throws IOException {
         writer.u32(this.windowSize);
+        writer.u8(this.rawLimitType);
     }
 
     public static RTMPMessageSetPeerBandwidth parse(ASReader reader) throws IOException {
