@@ -1,63 +1,79 @@
-package co.casterlabs.flv4j.rtmp.net.server;
+package co.casterlabs.flv4j.rtmp.net.client;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ThreadFactory;
+
+import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
-import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.rtmp.RTMPReader;
 import co.casterlabs.flv4j.rtmp.RTMPWriter;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth.LimitType;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageWindowAcknowledgementSize;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessageStream;
-import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamBeginControlMessage;
 import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.ConnectArgs;
 import co.casterlabs.flv4j.rtmp.net.NetConnection;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
+import co.casterlabs.flv4j.rtmp.net.NetStream;
 import co.casterlabs.flv4j.rtmp.net.RTMPConnection;
 
-public abstract class ServerNetConnection extends NetConnection {
-    private static final int DEFAULT_CHUNK_SIZE = 4096;
-    private static final int DEFAULT_WINDOW_ACK_SIZE = 2500000;
-
+public abstract class ClientNetConnection extends NetConnection {
     final RTMPConnection conn;
 
-    private AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved for control.
-    Map<Integer, ServerNetStream> streams = new HashMap<>();
+    private Map<Integer, ClientNetStream> streams = new HashMap<>();
 
-    public ServerNetConnection(RTMPReader in, RTMPWriter out) {
+    public ClientNetConnection(RTMPReader in, RTMPWriter out) {
         this.conn = new RTMPConnection(in, out);
         this.conn.onCall = this::onCall;
         this.conn.onMessage = this::onMessage;
         this.conn.onControlMessage = this::onControlMessage;
     }
 
-    public final void handle() throws IOException, InterruptedException {
-        try {
-            this.conn.handshake();
-            this.conn.run();
-        } finally {
-            for (ServerNetStream stream : this.streams.values()) {
-                try {
-                    stream.deleteStream();
-                } catch (IOException | InterruptedException ignored) {}
-            }
+    /**
+     * @param    args should contain AT LEAST an Object0/ECMAArray0.
+     * 
+     * @implNote      this class only supports amf0 object encoding.
+     * 
+     * @see           https://rtmp.veriskope.com/docs/spec/#7211connect
+     */
+    @Override
+    public ObjectLike connect(ConnectArgs args) throws IOException, InterruptedException, CallError {
+        return this.connect(args, Thread::new);
+    }
+
+    /**
+     * @implNote this class only supports amf0 object encoding.
+     * 
+     * @see      https://rtmp.veriskope.com/docs/spec/#7211connect
+     */
+    public final ObjectLike connect(ConnectArgs args, ThreadFactory factory) throws IOException, InterruptedException, CallError {
+        if (args.objectEncoding() != 0) {
+            throw new IllegalArgumentException("Only amf0 object encoding is supported.");
         }
+
+        this.conn.handshake();
+
+        factory.newThread(() -> {
+            try {
+                this.conn.run();
+                this.onClose(null);
+            } catch (Throwable t) {
+                this.onClose(t);
+            }
+        }).start();
+
+        return (ObjectLike) this.call("connect", args.toAMF0())[0];
     }
 
     private final void onControlMessage(int msId, RTMPControlMessage control) {
         if (control instanceof RTMPControlMessageStream streamControl) {
-            ServerNetStream stream = this.streams.get((int) streamControl.streamId());
+            ClientNetStream stream = this.streams.get((int) streamControl.streamId());
             if (stream != null && stream.onControlMessage != null) {
                 stream.onControlMessage.onControlMessage(streamControl);
             }
@@ -69,8 +85,15 @@ public abstract class ServerNetConnection extends NetConnection {
     }
 
     private final void onMessage(int msId, int timestamp, RTMPMessage message) {
+        if (message instanceof RTMPMessageChunkSize) {
+            try {
+                this.sendMessage(timestamp, message); // Echo it back :^)
+            } catch (IOException | InterruptedException e) {}
+            return;
+        }
+
         if (msId != RTMPConnection.CONTROL_MSID) {
-            ServerNetStream stream = this.streams.get(msId);
+            ClientNetStream stream = this.streams.get(msId);
             if (stream != null && stream.onMessage != null) {
                 stream.onMessage.onMessage(timestamp, message);
             }
@@ -84,7 +107,7 @@ public abstract class ServerNetConnection extends NetConnection {
 
     private final AMF0Type[] onCall(int msId, String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
         if (msId != RTMPConnection.CONTROL_MSID) {
-            ServerNetStream stream = this.streams.get(msId);
+            ClientNetStream stream = this.streams.get(msId);
 
             if (stream == null) {
                 throw new CallError(NetStatus.NC_CALL_FAILED);
@@ -94,59 +117,6 @@ public abstract class ServerNetConnection extends NetConnection {
         }
 
         switch (method) {
-            case "connect": {
-                ObjectLike res = this.connect(ConnectArgs.from(args));
-
-                this.conn.setWindowAcknowledgementSize(DEFAULT_WINDOW_ACK_SIZE);
-
-                this.sendMessage(
-                    0,
-                    new RTMPMessageWindowAcknowledgementSize(DEFAULT_WINDOW_ACK_SIZE)
-                );
-                this.sendMessage(
-                    0,
-                    new RTMPMessageSetPeerBandwidth(DEFAULT_WINDOW_ACK_SIZE, LimitType.DYNAMIC.id)
-                );
-                this.sendMessage(
-                    0,
-                    new RTMPMessageChunkSize(DEFAULT_CHUNK_SIZE)
-                );
-                this.sendMessage(
-                    0,
-                    new RTMPMessageUserControl(
-                        0,
-                        new RTMPStreamBeginControlMessage(0)
-                    )
-                );
-
-                return new AMF0Type[] {
-                        res,
-                        NetStatus.NC_CONNECT_SUCCESS.asObject()
-                };
-            }
-
-            case "createStream": {
-                int streamId = this.currStreamId.getAndIncrement();
-
-                ServerNetStream stream = this.createStream(args[0]);
-                stream.id = streamId;
-                stream.server = this;
-                this.streams.put(streamId, stream);
-
-                this.sendMessage(
-                    0,
-                    new RTMPMessageUserControl(
-                        0,
-                        new RTMPStreamBeginControlMessage(streamId)
-                    )
-                );
-
-                return new AMF0Type[] {
-                        Null0.INSTANCE,
-                        new Number0(streamId)
-                };
-            }
-
             default:
                 if (this.onCall == null) {
                     throw new CallError(NetStatus.NC_CALL_FAILED);
@@ -163,7 +133,13 @@ public abstract class ServerNetConnection extends NetConnection {
     }
 
     @Override
-    public abstract ServerNetStream createStream(AMF0Type arg) throws IOException, InterruptedException, CallError;
+    public final NetStream createStream(AMF0Type arg) throws IOException, InterruptedException, CallError {
+        AMF0Type[] result = this.call("createStream", arg); // per-spec, arg0 is a null type.
+        int streamId = (int) ((Number0) result[1]).value();
+        return new ClientNetStream(this, streamId);
+    }
+
+    public abstract void onClose(@Nullable Throwable reason);
 
     /* ------------------------ */
 

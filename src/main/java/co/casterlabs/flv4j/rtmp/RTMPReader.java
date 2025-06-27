@@ -8,6 +8,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPChunk;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageAbort;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageWindowAcknowledgementSize;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake0;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
@@ -96,6 +97,8 @@ public class RTMPReader {
             return null;
         } else if (chunk.message() instanceof RTMPMessageChunkSize chunkMessage) {
             this.chunkSize = chunkMessage.chunkSize();
+        } else if (chunk.message() instanceof RTMPMessageWindowAcknowledgementSize size) {
+            this.windowAcknowledgementSize = size.size();
         }
 
         return chunk;

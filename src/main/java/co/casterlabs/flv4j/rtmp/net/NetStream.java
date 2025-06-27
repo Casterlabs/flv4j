@@ -7,14 +7,41 @@ import org.jetbrains.annotations.Nullable;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
 import lombok.SneakyThrows;
 
+// https://rtmp.veriskope.com/docs/spec/#722netstream-commands
 public abstract class NetStream extends RPCHandler {
     public @Nullable StatusHandler onStatus;
 
+    private NetStatus status;
+
+    public final NetStatus status() {
+        return this.status;
+    }
+
+    protected void setStatus(NetStatus status) {
+        this.status = status;
+
+        if (this.onStatus != null) {
+            try {
+                this.onStatus.onStatus(status);
+            } catch (IOException | InterruptedException ignored) {}
+        }
+    }
+
     public abstract int id();
 
-    public void deleteStream() throws IOException, InterruptedException, CallError {}
-
     /* ------------------------ */
+
+    public final void play(String name) throws IOException, InterruptedException {
+        this.play(name, -2);
+    }
+
+    public final void play(String name, double start) throws IOException, InterruptedException {
+        this.play(name, start, -1, true);
+    }
+
+    public final void play(String name, double start, double duration) throws IOException, InterruptedException {
+        this.play(name, start, duration, true);
+    }
 
     @SneakyThrows
     public void play(String name, double start, double duration, boolean reset) throws IOException, InterruptedException {
@@ -47,6 +74,8 @@ public abstract class NetStream extends RPCHandler {
     public void pause(boolean pause, long milliseconds) throws IOException, InterruptedException {
         throw new CallError(NetStatus.NC_CALL_FAILED);
     }
+
+    public void deleteStream() throws IOException, InterruptedException {}
 
     /* ------------------------ */
 

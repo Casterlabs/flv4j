@@ -16,10 +16,14 @@ public abstract class ServerNetStream extends NetStream {
     ServerNetConnection server;
     int id;
 
-    {
-        this.onStatus = (status) -> {
+    @Override
+    public final void setStatus(NetStatus status) {
+        super.setStatus(status);
+
+        // Forward to client
+        try {
             this.callVoid("onStatus", Null0.INSTANCE, status.asObject());
-        };
+        } catch (IOException | InterruptedException ignored) {}
     }
 
     @Override

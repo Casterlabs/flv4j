@@ -3,13 +3,14 @@ package co.casterlabs.flv4j.rtmp.net;
 import java.io.IOException;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.Null0;
-import co.casterlabs.flv4j.actionscript.amf0.Object0;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
 
+// https://rtmp.veriskope.com/docs/spec/#721netconnection-commands
 public abstract class NetConnection extends RPCHandler {
 
-    public abstract Object0 connect(AMF0Type... args) throws IOException, InterruptedException, CallError;
+    public abstract ObjectLike connect(ConnectArgs args) throws IOException, InterruptedException, CallError;
 
     /* ------------------------ */
 
