@@ -43,4 +43,8 @@ public record Boolean0(
         return value == 0 ? FALSE : TRUE;
     }
 
+    public static Boolean0 valueOf(boolean value) {
+        return value ? TRUE : FALSE;
+    }
+
 }
