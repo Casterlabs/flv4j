@@ -105,14 +105,14 @@ public class RTMPConnection {
             // We handle these specially for RPC calls :^)
             switch (command.commandName().value()) {
                 case "_result": {
-                    Handle<AMF0Type[]> future = this.rpcFutures.remove(msId);
+                    Handle<AMF0Type[]> future = this.rpcFutures.remove((int) command.transactionId().value());
                     if (future == null) return;
                     future.resolve(args);
                     return; // we do not respond.
                 }
 
                 case "_error": {
-                    Handle<AMF0Type[]> future = this.rpcFutures.remove(msId);
+                    Handle<AMF0Type[]> future = this.rpcFutures.remove((int) command.transactionId().value());
                     if (future == null) return;
 
                     NetStatus status = findStatus(args);
