@@ -31,6 +31,8 @@ import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
 import co.casterlabs.flv4j.rtmp.net.rpc.RPCPromise;
 
 public abstract class ClientNetConnection extends NetConnection {
+    private static final int DEFAULT_CHUNK_SIZE = 4096;
+
     final RTMPConnection conn;
 
     private Map<Integer, ClientNetStream> streams = new HashMap<>();
@@ -67,6 +69,11 @@ public abstract class ClientNetConnection extends NetConnection {
             }
 
             this.conn.handshake();
+
+            this.sendMessage(
+                0,
+                new RTMPMessageChunkSize(DEFAULT_CHUNK_SIZE)
+            );
 
             factory.newThread(() -> {
                 try {
