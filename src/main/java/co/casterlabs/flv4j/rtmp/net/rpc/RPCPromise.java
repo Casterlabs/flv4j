@@ -60,21 +60,36 @@ public class RPCPromise<T> {
             try {
                 if (this.complete) {
                     if (this.failureReason == null) {
-                        R intermediate = then.then(this.result);
-                        handle.resolve(intermediate);
+                        try {
+                            R intermediate = then.then(this.result);
+                            handle.resolve(intermediate);
+                        } catch (InterruptedException | IOException | CallError e) {
+                            handle.reject(e);
+                        }
                     } else {
                         handle.reject(this.failureReason);
                     }
                 } else {
                     this.thenCbs.add((c) -> {
-                        R intermediate = then.then(c);
-                        handle.resolve(intermediate);
+                        try {
+                            R intermediate = then.then(this.result);
+                            handle.resolve(intermediate);
+                        } catch (InterruptedException | IOException | CallError e) {
+                            handle.reject(e);
+                        }
                     });
                     this.catchCbs.add(handle::reject);
                 }
             } finally {
                 this.lock.unlock();
             }
+        });
+    }
+
+    public RPCPromise<Void> then(VoidThen<T> then) {
+        return this.then((r) -> {
+            then.then(r);
+            return null;
         });
     }
 
@@ -135,12 +150,12 @@ public class RPCPromise<T> {
 
     @FunctionalInterface
     public static interface Then<T, R> {
-        public R then(T result);
+        public R then(T result) throws InterruptedException, IOException, CallError;
     }
 
     @FunctionalInterface
     public static interface VoidThen<T> {
-        public void then(T result);
+        public void then(T result) throws InterruptedException, IOException, CallError;
     }
 
     @FunctionalInterface
