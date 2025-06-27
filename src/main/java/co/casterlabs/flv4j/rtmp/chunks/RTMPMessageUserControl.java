@@ -25,7 +25,7 @@ import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamIsRecordedControlMessag
  *          chunk stream ID 2. User Control messages are effective at the point
  *          they are received in the stream; their timestamps are ignored.
  */
-public record RTMPMessageUserControl(int eventType, RTMPControlMessage eventData) implements RTMPMessage {
+public record RTMPMessageUserControl(RTMPControlMessage eventData) implements RTMPMessage {
 
     @Override
     public int rawType() {
@@ -41,7 +41,7 @@ public record RTMPMessageUserControl(int eventType, RTMPControlMessage eventData
 
     @Override
     public void serialize(ASWriter writer) throws IOException {
-        writer.u16(this.eventType);
+        writer.u16(this.eventData.type());
         this.eventData.serialize(writer);
     }
 
@@ -59,10 +59,10 @@ public record RTMPMessageUserControl(int eventType, RTMPControlMessage eventData
             // no 5?
             case 6 -> RTMPPingRequestControlMessage.parse(reader, dataLen);
             case 7 -> RTMPPingResponseControlMessage.parse(reader, dataLen);
-            default -> new RTMPRawControlMessage(reader.bytes(dataLen));
+            default -> new RTMPRawControlMessage(eventType, reader.bytes(dataLen));
         };
 
-        return new RTMPMessageUserControl(eventType, eventData);
+        return new RTMPMessageUserControl(eventData);
     }
 
 }

@@ -114,7 +114,6 @@ public abstract class ServerNetConnection extends NetConnection {
                 this.sendMessage(
                     0,
                     new RTMPMessageUserControl(
-                        0,
                         new RTMPStreamBeginControlMessage(0)
                     )
                 );
@@ -136,7 +135,6 @@ public abstract class ServerNetConnection extends NetConnection {
                 this.sendMessage(
                     0,
                     new RTMPMessageUserControl(
-                        0,
                         new RTMPStreamBeginControlMessage(streamId)
                     )
                 );

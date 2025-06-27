@@ -9,6 +9,11 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record RTMPSetBufferLengthControlMessage(long streamId, long milliseconds) implements RTMPControlMessageStream {
 
     @Override
+    public int type() {
+        return 3;
+    }
+
+    @Override
     public int size() {
         return 8;
     }

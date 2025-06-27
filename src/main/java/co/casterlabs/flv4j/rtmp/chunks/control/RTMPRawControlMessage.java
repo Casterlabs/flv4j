@@ -5,7 +5,7 @@ import java.io.IOException;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 // https://rtmp.veriskope.com/docs/spec/#717user-control-message-events
-public record RTMPRawControlMessage(byte[] raw) implements RTMPControlMessage {
+public record RTMPRawControlMessage(int type, byte[] raw) implements RTMPControlMessage {
 
     @Override
     public int size() {

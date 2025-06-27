@@ -9,6 +9,11 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record RTMPStreamBeginControlMessage(long streamId) implements RTMPControlMessageStream {
 
     @Override
+    public int type() {
+        return 0;
+    }
+
+    @Override
     public int size() {
         return 4;
     }

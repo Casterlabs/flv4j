@@ -9,6 +9,11 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record RTMPPingResponseControlMessage(long timestamp) implements RTMPControlMessage {
 
     @Override
+    public int type() {
+        return 7;
+    }
+
+    @Override
     public int size() {
         return 4;
     }
