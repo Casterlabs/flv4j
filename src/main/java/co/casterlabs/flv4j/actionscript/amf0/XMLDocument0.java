@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.actionscript.amf0;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.StringLike;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
@@ -11,7 +12,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 // This class is essentially a copy of LongString0.
 public record XMLDocument0(
     String value
-) implements AMF0Type {
+) implements StringLike {
 
     public XMLDocument0(String value) {
         ASAssert.u32(value.length(), "string length");

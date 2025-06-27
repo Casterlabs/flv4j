@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.actionscript.amf0;
 
 import java.io.IOException;
 
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.StringLike;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
@@ -10,7 +11,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=7
 public record LongString0(
     String value
-) implements AMF0Type {
+) implements StringLike {
 
     public LongString0(String value) {
         ASAssert.u32(value.length(), "string length");

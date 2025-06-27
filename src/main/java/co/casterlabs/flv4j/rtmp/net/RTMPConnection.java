@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.flv4j.actionscript.amf0.AMF0ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
@@ -161,7 +161,7 @@ public class RTMPConnection {
 
     private static NetStatus findStatus(AMF0Type[] args) {
         for (AMF0Type arg : args) {
-            if (arg instanceof AMF0ObjectLike obj) {
+            if (arg instanceof ObjectLike obj) {
                 if (obj.map().containsKey("code")) {
                     return new NetStatus(obj);
                 }

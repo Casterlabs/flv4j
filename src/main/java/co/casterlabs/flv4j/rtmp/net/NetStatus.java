@@ -2,7 +2,8 @@ package co.casterlabs.flv4j.rtmp.net;
 
 import java.util.Map;
 
-import co.casterlabs.flv4j.actionscript.amf0.AMF0ObjectLike;
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
+import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.StringLike;
 import co.casterlabs.flv4j.actionscript.amf0.Object0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
 import lombok.NonNull;
@@ -54,11 +55,11 @@ public record NetStatus(
         );
     }
 
-    public NetStatus(AMF0ObjectLike obj) {
+    public NetStatus(ObjectLike obj) {
         this(
-            ((String0) obj.map().getOrDefault("code", EMPTY_STR)).value(),
-            ((String0) obj.map().getOrDefault("level", EMPTY_STR)).value(),
-            ((String0) obj.map().getOrDefault("description", EMPTY_STR)).value(),
+            ((StringLike) obj.map().getOrDefault("code", EMPTY_STR)).value(),
+            ((StringLike) obj.map().getOrDefault("level", EMPTY_STR)).value(),
+            ((StringLike) obj.map().getOrDefault("description", EMPTY_STR)).value(),
             obj instanceof Object0 ? (Object0) obj : new Object0(obj.map())
         );
     }

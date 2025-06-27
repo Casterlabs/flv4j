@@ -2,6 +2,7 @@ package co.casterlabs.flv4j.actionscript.amf0;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import co.casterlabs.flv4j.FLVSerializable;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
@@ -84,6 +85,14 @@ public interface AMF0Type extends FLVSerializable {
         @Deprecated
         public final _Parser parser;
 
+    }
+
+    public static interface ObjectLike extends AMF0Type {
+        public Map<String, AMF0Type> map();
+    }
+
+    public static interface StringLike extends AMF0Type {
+        public String value();
     }
 
 }
