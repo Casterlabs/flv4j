@@ -24,7 +24,7 @@ public class RTMPReader {
     private int previousTimestamp;
     private int chunkSize = 128;
 
-    private @Setter int windowAcknowledgementSize = -1;
+    private @Setter long windowAcknowledgementSize = -1;
     private long lastAckAt = 0;
     private long read = 0;
 
@@ -49,7 +49,6 @@ public class RTMPReader {
 
     public boolean needsAck() {
         if (this.windowAcknowledgementSize <= 0) return false;
-
         return this.read - this.lastAckAt > this.windowAcknowledgementSize / 2;
     }
 
@@ -98,7 +97,7 @@ public class RTMPReader {
         } else if (chunk.message() instanceof RTMPMessageChunkSize chunkMessage) {
             this.chunkSize = chunkMessage.chunkSize();
         } else if (chunk.message() instanceof RTMPMessageWindowAcknowledgementSize size) {
-            this.windowAcknowledgementSize = size.size();
+            this.windowAcknowledgementSize = size.windowSize();
         }
 
         return chunk;
