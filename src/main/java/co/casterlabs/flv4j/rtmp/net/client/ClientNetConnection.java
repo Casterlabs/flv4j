@@ -14,8 +14,11 @@ import co.casterlabs.flv4j.rtmp.RTMPReader;
 import co.casterlabs.flv4j.rtmp.RTMPWriter;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessageStream;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingRequestControlMessage;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingResponseControlMessage;
 import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.ConnectArgs;
 import co.casterlabs.flv4j.rtmp.net.NetConnection;
@@ -72,7 +75,16 @@ public abstract class ClientNetConnection extends NetConnection {
     }
 
     private final void onControlMessage(int msId, RTMPControlMessage control) {
-        if (control instanceof RTMPControlMessageStream streamControl) {
+        if (control instanceof RTMPPingRequestControlMessage ping) {
+            try {
+                this.sendMessage(
+                    0,
+                    new RTMPMessageUserControl(
+                        new RTMPPingResponseControlMessage(ping.timestamp())
+                    )
+                );
+            } catch (IOException | InterruptedException ignored) {}
+        } else if (control instanceof RTMPControlMessageStream streamControl) {
             ClientNetStream stream = this.streams.get((int) streamControl.streamId());
             if (stream != null && stream.onControlMessage != null) {
                 stream.onControlMessage.onControlMessage(streamControl);
