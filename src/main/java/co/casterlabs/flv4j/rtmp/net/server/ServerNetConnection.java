@@ -1,7 +1,9 @@
 package co.casterlabs.flv4j.rtmp.net.server;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -24,11 +26,13 @@ import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessageStream;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingRequestControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingResponseControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamBeginControlMessage;
-import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.ConnectArgs;
 import co.casterlabs.flv4j.rtmp.net.NetConnection;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
+import co.casterlabs.flv4j.rtmp.net.NetStream;
 import co.casterlabs.flv4j.rtmp.net.RTMPConnection;
+import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
+import co.casterlabs.flv4j.rtmp.net.rpc.RPCPromise;
 
 public abstract class ServerNetConnection extends NetConnection {
     private static final long PING_INTERVAL = TimeUnit.SECONDS.toMillis(30);
@@ -197,11 +201,11 @@ public abstract class ServerNetConnection extends NetConnection {
 
     /* ------------------------ */
 
-    public final int activeStreams() {
-        return this.streams.size();
+    @Override
+    public List<NetStream> streams() {
+        return new ArrayList<>(this.streams.values());
     }
 
-    @Override
     public abstract ServerNetStream createStream(AMF0Type arg) throws IOException, InterruptedException, CallError;
 
     /* ------------------------ */
@@ -225,7 +229,7 @@ public abstract class ServerNetConnection extends NetConnection {
     }
 
     @Override
-    public final AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
+    public final RPCPromise<AMF0Type[]> call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
         return this.conn.call(RTMPConnection.CONTROL_MSID, method, args);
     }
 

@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
+import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
+import co.casterlabs.flv4j.rtmp.net.rpc.RPCHandler;
 import lombok.SneakyThrows;
 
 // https://rtmp.veriskope.com/docs/spec/#722netstream-commands

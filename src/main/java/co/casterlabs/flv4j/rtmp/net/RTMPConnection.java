@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +23,10 @@ import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
+import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
+import co.casterlabs.flv4j.rtmp.net.rpc.RPCPromise;
+import co.casterlabs.flv4j.rtmp.net.rpc.RPCPromise.Handle;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 @RequiredArgsConstructor
 public class RTMPConnection {
@@ -36,7 +36,7 @@ public class RTMPConnection {
     private static final String0 _RESULT = new String0("_result");
     private static final String0 _ERROR = new String0("_error");
 
-    private final Map<Integer, CompletableFuture<AMF0Type[]>> rpcFutures = new HashMap<>();
+    private final Map<Integer, RPCPromise.Handle<AMF0Type[]>> rpcFutures = new HashMap<>();
     private final AtomicInteger currTsId = new AtomicInteger(1); // 0 is reserved for void calls.
 
     private final RTMPReader in;
@@ -91,7 +91,7 @@ public class RTMPConnection {
                 }
             }
         } catch (IOException | InterruptedException e) {
-            this.rpcFutures.forEach((k, v) -> v.completeExceptionally(e));
+            this.rpcFutures.forEach((k, v) -> v.reject(e));
             throw e;
         }
     }
@@ -103,18 +103,18 @@ public class RTMPConnection {
             // We handle these specially for RPC calls :^)
             switch (command.commandName().value()) {
                 case "_result": {
-                    CompletableFuture<AMF0Type[]> future = this.rpcFutures.remove(msId);
+                    Handle<AMF0Type[]> future = this.rpcFutures.remove(msId);
                     if (future == null) return;
-                    future.complete(args);
+                    future.resolve(args);
                     return; // we do not respond.
                 }
 
                 case "_error": {
-                    CompletableFuture<AMF0Type[]> future = this.rpcFutures.remove(msId);
+                    Handle<AMF0Type[]> future = this.rpcFutures.remove(msId);
                     if (future == null) return;
 
                     NetStatus status = findStatus(args);
-                    future.completeExceptionally(new CallError(status));
+                    future.reject(new CallError(status));
                     return; // we do not respond.
                 }
 
@@ -193,28 +193,26 @@ public class RTMPConnection {
         );
     }
 
-    @SneakyThrows
-    public AMF0Type[] call(int msId, String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
-        CompletableFuture<AMF0Type[]> future = new CompletableFuture<>();
+    public RPCPromise<AMF0Type[]> call(int msId, String method, AMF0Type... args) {
+        return new RPCPromise<>((handle) -> {
+            int tsId = this.currTsId.getAndIncrement();
+            this.rpcFutures.put(tsId, handle);
 
-        int tsId = this.currTsId.getAndIncrement();
-        this.rpcFutures.put(tsId, future);
-
-        this.sendMessage(
-            msId,
-            0, // ?
-            new RTMPMessageCommand0(
-                new String0(method),
-                new Number0(tsId),
-                Arrays.asList(args)
-            )
-        );
-
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            throw e.getCause(); // sneakythrows lets us wrap this :^)
-        }
+            try {
+                this.sendMessage(
+                    msId,
+                    0, // ?
+                    new RTMPMessageCommand0(
+                        new String0(method),
+                        new Number0(tsId),
+                        Arrays.asList(args)
+                    )
+                );
+            } catch (IOException | InterruptedException e) {
+                this.rpcFutures.remove(tsId);
+                handle.reject(e);
+            }
+        });
     }
 
     @FunctionalInterface

@@ -1,5 +1,6 @@
-package co.casterlabs.flv4j.rtmp.net;
+package co.casterlabs.flv4j.rtmp.net.rpc;
 
+import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor

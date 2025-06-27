@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.rtmp.net;
+package co.casterlabs.flv4j.rtmp.net.rpc;
 
 import java.io.IOException;
 
@@ -15,7 +15,7 @@ public abstract class RPCHandler {
 
     public abstract void callVoid(String method, AMF0Type... args) throws IOException, InterruptedException;
 
-    public abstract AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError;
+    public abstract RPCPromise<AMF0Type[]> call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError;
 
     @FunctionalInterface
     public interface CallHandler {

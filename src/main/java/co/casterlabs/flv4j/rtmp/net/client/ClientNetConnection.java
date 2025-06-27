@@ -1,7 +1,9 @@
 package co.casterlabs.flv4j.rtmp.net.client;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 
@@ -9,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
+import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.rtmp.RTMPReader;
 import co.casterlabs.flv4j.rtmp.RTMPWriter;
@@ -19,12 +22,13 @@ import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessageStream;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingRequestControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingResponseControlMessage;
-import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.ConnectArgs;
 import co.casterlabs.flv4j.rtmp.net.NetConnection;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import co.casterlabs.flv4j.rtmp.net.NetStream;
 import co.casterlabs.flv4j.rtmp.net.RTMPConnection;
+import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
+import co.casterlabs.flv4j.rtmp.net.rpc.RPCPromise;
 
 public abstract class ClientNetConnection extends NetConnection {
     final RTMPConnection conn;
@@ -56,22 +60,40 @@ public abstract class ClientNetConnection extends NetConnection {
      * @see      https://rtmp.veriskope.com/docs/spec/#7211connect
      */
     public final ObjectLike connect(ConnectArgs args, ThreadFactory factory) throws IOException, InterruptedException, CallError {
-        if (args.objectEncoding() != 0) {
-            throw new IllegalArgumentException("Only amf0 object encoding is supported.");
-        }
-
-        this.conn.handshake();
-
-        factory.newThread(() -> {
-            try {
-                this.conn.run();
-                this.onClose(null);
-            } catch (Throwable t) {
-                this.onClose(t);
+        boolean[] $closed = new boolean[1];
+        try {
+            if (args.objectEncoding() != 0) {
+                throw new IllegalArgumentException("Only amf0 object encoding is supported.");
             }
-        }).start();
 
-        return (ObjectLike) this.call("connect", args.toAMF0())[0];
+            this.conn.handshake();
+
+            factory.newThread(() -> {
+                try {
+                    this.conn.run();
+
+                    if (!$closed[0]) {
+                        $closed[0] = true;
+                        this.onClose(null);
+                    }
+                } catch (Throwable t) {
+                    if (!$closed[0]) {
+                        $closed[0] = true;
+                        this.onClose(t);
+                    }
+                }
+            }).start();
+
+            return this.call("connect", args.toAMF0())
+                .then((result) -> (ObjectLike) result[0])
+                .await();
+        } catch (IOException | InterruptedException | CallError e) {
+            if (!$closed[0]) {
+                $closed[0] = true;
+                this.onClose(e);
+            }
+            throw e;
+        }
     }
 
     private final void onControlMessage(int msId, RTMPControlMessage control) {
@@ -140,15 +162,24 @@ public abstract class ClientNetConnection extends NetConnection {
 
     /* ------------------------ */
 
-    public final int activeStreams() {
-        return this.streams.size();
+    @Override
+    public List<NetStream> streams() {
+        return new ArrayList<>(this.streams.values());
     }
 
-    @Override
-    public final NetStream createStream(AMF0Type arg) throws IOException, InterruptedException, CallError {
-        AMF0Type[] result = this.call("createStream", arg); // per-spec, arg0 is a null type.
-        int streamId = (int) ((Number0) result[1]).value();
-        return new ClientNetStream(this, streamId);
+    public final RPCPromise<NetStream> createStream() throws IOException, InterruptedException, CallError {
+        return this.createStream(Null0.INSTANCE);
+    }
+
+    public final RPCPromise<NetStream> createStream(AMF0Type arg) throws IOException, InterruptedException, CallError {
+        return this.call("createStream", arg)
+            .then((result) -> {
+                int streamId = (int) ((Number0) result[1]).value(); // per-spec, arg0 is a null type.
+                ClientNetStream netStream = new ClientNetStream(this, streamId);
+
+                this.streams.put(streamId, netStream);
+                return netStream;
+            });
     }
 
     public abstract void onClose(@Nullable Throwable reason);
@@ -174,7 +205,7 @@ public abstract class ClientNetConnection extends NetConnection {
     }
 
     @Override
-    public final AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
+    public final RPCPromise<AMF0Type[]> call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
         return this.conn.call(RTMPConnection.CONTROL_MSID, method, args);
     }
 

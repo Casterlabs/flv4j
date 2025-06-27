@@ -9,9 +9,10 @@ import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
-import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import co.casterlabs.flv4j.rtmp.net.NetStream;
+import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
+import co.casterlabs.flv4j.rtmp.net.rpc.RPCPromise;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -136,7 +137,7 @@ class ClientNetStream extends NetStream {
     }
 
     @Override
-    public final AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
+    public final RPCPromise<AMF0Type[]> call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
         return this.client.conn.call(
             this.id,
             method,
