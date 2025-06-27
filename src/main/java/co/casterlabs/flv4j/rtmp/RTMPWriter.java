@@ -96,7 +96,7 @@ public class RTMPWriter {
                 int offset = chunkSize;
                 while (b.length - offset > 0) {
                     int toWrite = Math.min(b.length - offset, chunkSize);
-                    write3(this.chunkStreamId, b, offset, chunkSize);
+                    write3(this.chunkStreamId, b, offset, toWrite);
                     offset += toWrite;
                 }
             } finally {
