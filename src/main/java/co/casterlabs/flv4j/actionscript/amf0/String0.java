@@ -12,6 +12,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record String0(
     String value
 ) implements StringLike {
+    public static final String0 EMPTY = new String0("");
 
     public String0(String value) {
         ASAssert.u16(value.length(), "string length");

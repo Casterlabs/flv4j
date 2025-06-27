@@ -11,6 +11,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record Object0(
     Map<String, AMF0Type> map
 ) implements ObjectLike {
+    public static final Object0 EMPTY = new Object0(Map.of());
 
     public Object0(Map<String, AMF0Type> map) {
         assert map != null : "map cannot be null";

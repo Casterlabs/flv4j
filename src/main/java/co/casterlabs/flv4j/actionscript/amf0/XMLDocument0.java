@@ -13,6 +13,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record XMLDocument0(
     String value
 ) implements StringLike {
+    public static final XMLDocument0 EMPTY = new XMLDocument0("");
 
     public XMLDocument0(String value) {
         ASAssert.u32(value.length(), "string length");

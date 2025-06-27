@@ -12,6 +12,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record ECMAArray0(
     Map<String, AMF0Type> map
 ) implements ObjectLike {
+    public static final ECMAArray0 EMPTY = new ECMAArray0(Map.of());
 
     public ECMAArray0(Map<String, AMF0Type> map) {
         ASAssert.u32(map.size(), "map size");
