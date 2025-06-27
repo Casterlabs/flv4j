@@ -34,7 +34,7 @@ public abstract class ServerNetConnection extends NetConnection {
     private static final long PING_INTERVAL = TimeUnit.SECONDS.toMillis(30);
 
     private static final int DEFAULT_CHUNK_SIZE = 4096;
-    private static final int DEFAULT_WINDOW_ACK_SIZE = 2500000;
+    private static final int DEFAULT_WINDOW_ACK_SIZE = 10_000_000; // 10mb
 
     final RTMPConnection conn;
 
