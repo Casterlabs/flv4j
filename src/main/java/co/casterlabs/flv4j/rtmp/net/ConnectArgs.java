@@ -62,6 +62,7 @@ public class ConnectArgs {
     public static final int FOUR_CC_INFO_FORWARD = 0x03;
 
     private String app;
+    private String type;
     private String flashVersion;
     private String swfUrl;
     private String tcUrl;
@@ -191,23 +192,23 @@ public class ConnectArgs {
         Map<String, AMF0Type> map = new HashMap<>();
 
         if (this.app != null) map.put("app", new String0(this.app));
-        if (this.flashVersion != null) map.put("flashVersion", new String0(this.flashVersion));
+        if (this.type != null) map.put("type", new String0(this.type));
+        if (this.flashVersion != null) map.put("flashVer", new String0(this.flashVersion));
         if (this.swfUrl != null) map.put("swfUrl", new String0(this.swfUrl));
         if (this.tcUrl != null) map.put("tcUrl", new String0(this.tcUrl));
         if (this.pageUrl != null) map.put("pageUrl", new String0(this.pageUrl));
 
-        map.put("audioCodecs", new Number0(this.audioCodecs));
-        map.put("videoCodecs", new Number0(this.videoCodecs));
-        map.put("videoFunction", new Number0(this.videoFunction));
-        map.put("objectEncoding", new Number0(this.objectEncoding));
+        if (this.audioCodecs != 0) map.put("audioCodecs", new Number0(this.audioCodecs));
+        if (this.videoCodecs != 0) map.put("videoCodecs", new Number0(this.videoCodecs));
+        if (this.videoFunction != 0) map.put("videoFunction", new Number0(this.videoFunction));
+        if (this.objectEncoding != 0) map.put("objectEncoding", new Number0(this.objectEncoding));
 
-        map.put("capsEx", new Number0(this.capsEx));
+        if (this.capsEx != 0) map.put("capsEx", new Number0(this.capsEx));
 
-        {
-            List<String0> legacyFourCcList = new LinkedList<>();
+        List<String0> legacyFourCcList = new LinkedList<>();
+
+        if (!this.videoFourCcInfoMap.isEmpty()) {
             Map<String, AMF0Type> videoFourCcMap = new HashMap<>();
-            Map<String, AMF0Type> audioFourCcMap = new HashMap<>();
-
             for (Map.Entry<String, Integer> entry : this.videoFourCcInfoMap.entrySet()) {
                 String codec = entry.getKey();
                 int mask = entry.getValue();
@@ -216,7 +217,11 @@ public class ConnectArgs {
                 legacyFourCcList.add(new String0(codec));
                 videoFourCcMap.put(codec, new Number0(mask));
             }
+            map.put("videoFourCcInfoMap", new Object0(videoFourCcMap));
+        }
 
+        if (!this.audioFourCcInfoMap.isEmpty()) {
+            Map<String, AMF0Type> audioFourCcMap = new HashMap<>();
             for (Map.Entry<String, Integer> entry : this.audioFourCcInfoMap.entrySet()) {
                 String codec = entry.getKey();
                 int mask = entry.getValue();
@@ -225,9 +230,10 @@ public class ConnectArgs {
                 legacyFourCcList.add(new String0(codec));
                 audioFourCcMap.put(codec, new Number0(mask));
             }
-
-            map.put("videoFourCcInfoMap", new Object0(videoFourCcMap));
             map.put("audioFourCcInfoMap", new Object0(audioFourCcMap));
+        }
+
+        if (!legacyFourCcList.isEmpty()) {
             map.put("fourCcList", new StrictArray0(legacyFourCcList.toArray(new String0[0])));
         }
 
@@ -257,7 +263,8 @@ public class ConnectArgs {
         args.optionalArgs = optional;
 
         if (map.containsKey("app")) args.app = ((StringLike) map.get("app")).value();
-        if (map.containsKey("flashVersion")) args.flashVersion = ((StringLike) map.get("flashVersion")).value();
+        if (map.containsKey("type")) args.type = ((StringLike) map.get("type")).value();
+        if (map.containsKey("flashVer")) args.flashVersion = ((StringLike) map.get("flashVer")).value();
         if (map.containsKey("swfUrl")) args.swfUrl = ((StringLike) map.get("swfUrl")).value();
         if (map.containsKey("tcUrl")) args.tcUrl = ((StringLike) map.get("tcUrl")).value();
         if (map.containsKey("pageUrl")) args.pageUrl = ((StringLike) map.get("pageUrl")).value();
