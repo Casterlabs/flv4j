@@ -64,12 +64,7 @@ public record NetStatus(
     }
 
     public NetStatus(ECMAArray0 arr) {
-        this(
-            ((String0) arr.map().getOrDefault("code", EMPTY_STR)).value(),
-            ((String0) arr.map().getOrDefault("level", EMPTY_STR)).value(),
-            ((String0) arr.map().getOrDefault("description", EMPTY_STR)).value(),
-            new Object0(arr.map())
-        );
+        this(new Object0(arr.map()));
     }
 
 }
