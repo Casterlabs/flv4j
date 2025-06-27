@@ -1,135 +1,46 @@
 package co.casterlabs.flv4j.rtmp.net.server;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
 import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.actionscript.amf0.Object0;
-import co.casterlabs.flv4j.actionscript.amf0.String0;
 import co.casterlabs.flv4j.rtmp.RTMPReader;
 import co.casterlabs.flv4j.rtmp.RTMPWriter;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPChunk;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageAcknowledgement;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageCommand0;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth.LimitType;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageWindowAcknowledgementSize;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamBeginControlMessage;
-import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
-import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
 import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.NetConnection;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
-import lombok.SneakyThrows;
+import co.casterlabs.flv4j.rtmp.net.RTMPConnection;
 
 public abstract class NetConnectionServer extends NetConnection {
-    private static final int CHUNK_SIZE = 4096;
-    private static final int WINDOW_ACK_SIZE = 2500000;
+    private static final int DEFAULT_CHUNK_SIZE = 4096;
+    private static final int DEFAULT_WINDOW_ACK_SIZE = 2500000;
 
-    private final RTMPReader in;
-    private final RTMPWriter out;
+    final RTMPConnection conn;
 
-    Map<Integer, Future<AMF0Type[]>> rpcFutures = new HashMap<>();
-    AtomicInteger currTsId = new AtomicInteger(1); // 0 is reserved.
-
-    private AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved.
+    private AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved for control.
     Map<Integer, ServerNetStream> streams = new HashMap<>();
 
     public NetConnectionServer(RTMPReader in, RTMPWriter out) {
-        this.in = in;
-        this.out = out;
+        this.conn = new RTMPConnection(in, out);
+        this.conn.onCall = this::onCall;
+        this.conn.onMessage = this::onMessage;
     }
 
-    public void run() throws IOException, InterruptedException {
-        this.in.handshake0(); // Consume. Should always be version 3.
-        this.out.handshake0();
-
-        RTMPHandshake1 handshake1 = this.in.handshake1();
-        this.out.handshake1();
-
-        this.out.handshake2(handshake1);
-        RTMPHandshake2 handshake2 = this.in.handshake2();
-
-        if (!this.out.validateHandshake2(handshake2)) {
-            throw new IOException("Handshake failed!");
-        }
-
+    public final void run() throws IOException, InterruptedException {
         try {
-            while (true) {
-                if (this.in.needsAck()) {
-                    this.sendMessage(CONTROL_MSID, 0, new RTMPMessageAcknowledgement(this.in.ackSeq()));
-                }
-
-                RTMPChunk<?> read = this.in.read();
-                if (read == null) continue;
-
-                int msId = (int) read.messageStreamId();
-                RTMPMessage message = read.message();
-
-                if (message instanceof RTMPMessageCommand0 command) {
-                    AMF0Type[] args = command.arguments().toArray(new AMF0Type[0]);
-
-                    try {
-                        AMF0Type[] response = this.onCall(msId, command.commandName().value(), args);
-                        if (command.transactionId().value() == 0) continue; // void.
-
-                        if (response == null) {
-                            response = new AMF0Type[] {
-                                    Null0.INSTANCE
-                            };
-                        }
-
-                        this.sendMessage(
-                            msId,
-                            0, // ?
-                            new RTMPMessageCommand0(
-                                _RESULT,
-                                command.transactionId(),
-                                Arrays.asList(response)
-                            )
-                        );
-                    } catch (CallError e) {
-                        if (command.transactionId().value() == 0) continue; // void
-
-                        this.sendMessage(
-                            msId,
-                            0, // ?
-                            new RTMPMessageCommand0(
-                                _ERROR,
-                                command.transactionId(),
-                                Arrays.asList(e.status.asObject())
-                            )
-                        );
-                    }
-                } else {
-                    if (msId == CONTROL_MSID) {
-                        if (this.onMessage == null) {
-                            continue; // DROP.
-                        }
-
-                        this.onMessage.onMessage(msId, read.timestamp(), message);
-                    } else {
-                        ServerNetStream stream = this.streams.get(msId);
-
-                        if (stream == null || stream.onMessage == null) {
-                            continue; // DROP.
-                        }
-
-                        stream.onMessage.onMessage(msId, read.timestamp(), message);
-                    }
-                }
-            }
+            this.conn.run();
         } finally {
             for (ServerNetStream stream : this.streams.values()) {
                 try {
@@ -139,22 +50,22 @@ public abstract class NetConnectionServer extends NetConnection {
         }
     }
 
-    public int activeStreams() {
-        return this.streams.size();
-    }
+    private final void onMessage(int msId, int timestamp, RTMPMessage message) {
+        if (msId != RTMPConnection.CONTROL_MSID) {
+            ServerNetStream stream = this.streams.get(msId);
+            if (stream != null) {
+                stream.onMessage.onMessage(timestamp, message);
+            }
+            return;
+        }
 
-    /* ------------------------ */
-
-    void sendMessage(int msId, int timestamp, RTMPMessage message) throws IOException, InterruptedException {
-        this.out.write(
-            msId,
-            timestamp,
-            message
-        );
+        if (this.onMessage != null) {
+            this.onMessage.onMessage(timestamp, message);
+        }
     }
 
     private final AMF0Type[] onCall(int msId, String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
-        if (msId != CONTROL_MSID) {
+        if (msId != RTMPConnection.CONTROL_MSID) {
             ServerNetStream stream = this.streams.get(msId);
 
             if (stream == null) {
@@ -168,18 +79,19 @@ public abstract class NetConnectionServer extends NetConnection {
             case "connect": {
                 Object0 res = this.connect(args);
 
+                this.conn.setWindowAcknowledgementSize(DEFAULT_WINDOW_ACK_SIZE);
+
                 this.sendMessage(
                     0,
-                    new RTMPMessageWindowAcknowledgementSize(WINDOW_ACK_SIZE)
+                    new RTMPMessageWindowAcknowledgementSize(DEFAULT_WINDOW_ACK_SIZE)
                 );
                 this.sendMessage(
                     0,
-                    new RTMPMessageSetPeerBandwidth(WINDOW_ACK_SIZE, LimitType.DYNAMIC.id)
+                    new RTMPMessageSetPeerBandwidth(DEFAULT_WINDOW_ACK_SIZE, LimitType.DYNAMIC.id)
                 );
-                this.in.setWindowAcknowledgementSize(WINDOW_ACK_SIZE);
                 this.sendMessage(
                     0,
-                    new RTMPMessageChunkSize(CHUNK_SIZE)
+                    new RTMPMessageChunkSize(DEFAULT_CHUNK_SIZE)
                 );
                 this.sendMessage(
                     0,
@@ -221,9 +133,15 @@ public abstract class NetConnectionServer extends NetConnection {
                 if (this.onCall == null) {
                     throw new CallError(NetStatus.NC_CALL_FAILED);
                 } else {
-                    return this.onCall.onCall(msId, method, args);
+                    return this.onCall.onCall(method, args);
                 }
         }
+    }
+
+    /* ------------------------ */
+
+    public final int activeStreams() {
+        return this.streams.size();
     }
 
     @Override
@@ -232,48 +150,26 @@ public abstract class NetConnectionServer extends NetConnection {
     /* ------------------------ */
 
     @Override
-    public void sendMessage(int timestamp, RTMPMessage message) throws IOException, InterruptedException {
-        this.sendMessage(
-            CONTROL_MSID,
+    public final void sendMessage(int timestamp, RTMPMessage message) throws IOException, InterruptedException {
+        this.conn.sendMessage(
+            RTMPConnection.CONTROL_MSID,
             timestamp,
             message
         );
     }
 
     @Override
-    public void callVoid(String method, AMF0Type... args) throws IOException, InterruptedException {
-        this.sendMessage(
-            0, // ?
-            new RTMPMessageCommand0(
-                new String0(method),
-                VOID_TSID,
-                Arrays.asList(args)
-            )
+    public final void callVoid(String method, AMF0Type... args) throws IOException, InterruptedException {
+        this.conn.callVoid(
+            RTMPConnection.CONTROL_MSID,
+            method,
+            args
         );
     }
 
-    @SneakyThrows
     @Override
-    public AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
-        CompletableFuture<AMF0Type[]> future = new CompletableFuture<>();
-
-        int tsId = this.currTsId.getAndIncrement();
-        this.rpcFutures.put(tsId, future);
-
-        this.sendMessage(
-            0, // ?
-            new RTMPMessageCommand0(
-                new String0(method),
-                new Number0(tsId),
-                Arrays.asList(args)
-            )
-        );
-
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            throw e.getCause();
-        }
+    public final AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
+        return this.conn.call(RTMPConnection.CONTROL_MSID, method, args);
     }
 
 }

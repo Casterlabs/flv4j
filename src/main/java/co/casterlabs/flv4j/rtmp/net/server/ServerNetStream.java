@@ -1,20 +1,16 @@
 package co.casterlabs.flv4j.rtmp.net.server;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
+import co.casterlabs.flv4j.actionscript.amf0.Boolean0;
 import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
-import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageCommand0;
 import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import co.casterlabs.flv4j.rtmp.net.NetStream;
-import lombok.SneakyThrows;
 
 public abstract class ServerNetStream extends NetStream {
     NetConnectionServer server;
@@ -41,10 +37,62 @@ public abstract class ServerNetStream extends NetStream {
                 return null;
             }
 
+            case "play": {
+                String name = ((String0) args[1]).value();
+
+                double start = -2; // default value per spec
+                if (args.length > 2) {
+                    start = ((Number0) args[2]).value();
+                }
+
+                double duration = -1; // default value per spec
+                if (args.length > 3) {
+                    start = ((Number0) args[3]).value();
+                }
+
+                boolean reset = true;
+                if (args.length > 4) {
+                    reset = ((Boolean0) args[4]).value();
+                }
+
+                this.play(name, start, duration, reset);
+                return null;
+            }
+
+            case "receiveAudio": {
+                boolean enabled = ((Boolean0) args[1]).value();
+
+                this.receiveAudio(enabled);
+                return null;
+            }
+
+            case "receiveVideo": {
+                boolean enabled = ((Boolean0) args[1]).value();
+
+                this.receiveVideo(enabled);
+                return null;
+            }
+
             case "publish": {
                 String name = ((String0) args[1]).value();
                 String type = ((String0) args[2]).value();
+
                 this.publish(name, type);
+                return null;
+            }
+
+            case "seek": {
+                long milliseconds = (long) ((Number0) args[1]).value();
+
+                this.seek(milliseconds);
+                return null;
+            }
+
+            case "pause": {
+                boolean pause = ((Boolean0) args[1]).value();
+                long milliseconds = (long) ((Number0) args[2]).value();
+
+                this.pause(pause, milliseconds);
                 return null;
             }
 
@@ -52,7 +100,7 @@ public abstract class ServerNetStream extends NetStream {
                 if (this.onCall == null) {
                     throw new CallError(NetStatus.NC_CALL_FAILED);
                 } else {
-                    return this.onCall.onCall(this.id, method, args);
+                    return this.onCall.onCall(method, args);
                 }
         }
     }
@@ -65,7 +113,7 @@ public abstract class ServerNetStream extends NetStream {
             throw new IllegalStateException("Cannot send NetStream message before it has been initialized.");
         }
 
-        this.server.sendMessage(
+        this.server.conn.sendMessage(
             this.id,
             timestamp,
             message
@@ -74,38 +122,20 @@ public abstract class ServerNetStream extends NetStream {
 
     @Override
     public final void callVoid(String method, AMF0Type... args) throws IOException, InterruptedException {
-        this.sendMessage(
-            0, // ?
-            new RTMPMessageCommand0(
-                new String0(method),
-                VOID_TSID,
-                Arrays.asList(args)
-            )
+        this.server.conn.callVoid(
+            this.id,
+            method,
+            args
         );
     }
 
-    @SneakyThrows
     @Override
     public final AMF0Type[] call(String method, AMF0Type... args) throws IOException, InterruptedException, CallError {
-        CompletableFuture<AMF0Type[]> future = new CompletableFuture<>();
-
-        int tsId = this.server.currTsId.getAndIncrement();
-        this.server.rpcFutures.put(tsId, future);
-
-        this.sendMessage(
-            0, // ?
-            new RTMPMessageCommand0(
-                new String0(method),
-                new Number0(tsId),
-                Arrays.asList(args)
-            )
+        return this.server.conn.call(
+            this.id,
+            method,
+            args
         );
-
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            throw e.getCause();
-        }
     }
 
 }
