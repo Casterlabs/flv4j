@@ -22,6 +22,8 @@ import co.casterlabs.flv4j.rtmp.chunks.RTMPChunk;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageAcknowledgement;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageCommand0;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ public class RTMPConnection {
 
     public @Nullable ConnCallHandler onCall;
     public @Nullable ConnMessageHandler onMessage;
+    public @Nullable ConnControlHandler onControlMessage;
 
     public void setWindowAcknowledgementSize(int size) {
         this.in.setWindowAcknowledgementSize(size);
@@ -75,80 +78,15 @@ public class RTMPConnection {
                 RTMPMessage message = read.message();
 
                 if (message instanceof RTMPMessageCommand0 command) {
-                    AMF0Type[] args = command.arguments().toArray(new AMF0Type[0]);
-
-                    try {
-                        // We handle these specially for RPC calls :^)
-                        switch (command.commandName().value()) {
-                            case "_result": {
-                                CompletableFuture<AMF0Type[]> future = this.rpcFutures.remove(msId);
-                                if (future == null) continue;
-                                future.complete(args);
-                                continue; // we do not respond.
-                            }
-
-                            case "_error": {
-                                CompletableFuture<AMF0Type[]> future = this.rpcFutures.remove(msId);
-                                if (future == null) continue;
-
-                                NetStatus status;
-                                if (args[0] instanceof Object0 obj) {
-                                    status = new NetStatus(obj);
-                                } else if (args[0] instanceof ECMAArray0 arr) {
-                                    status = new NetStatus(arr);
-                                } else {
-                                    throw new IllegalArgumentException("Invalid error reply: " + Arrays.toString(args));
-                                }
-
-                                future.completeExceptionally(new CallError(status));
-                                continue; // we do not respond.
-                            }
-
-                            default:
-                                break; // fall through
-                        }
-
-                        AMF0Type[] response = null;
-                        if (this.onCall != null) {
-                            response = this.onCall.onCall(msId, command.commandName().value(), args);
-                        }
-
-                        if (command.transactionId().value() == 0) continue; // void.
-
-                        if (response == null) {
-                            response = new AMF0Type[] {
-                                    Null0.INSTANCE
-                            };
-                        }
-
-                        this.sendMessage(
-                            msId,
-                            0, // ?
-                            new RTMPMessageCommand0(
-                                _RESULT,
-                                command.transactionId(),
-                                Arrays.asList(response)
-                            )
-                        );
-                    } catch (CallError e) {
-                        if (command.transactionId().value() == 0) continue; // void
-
-                        this.sendMessage(
-                            msId,
-                            0, // ?
-                            new RTMPMessageCommand0(
-                                _ERROR,
-                                command.transactionId(),
-                                Arrays.asList(e.status.asObject())
-                            )
-                        );
+                    this.onCommand(msId, command);
+                } else if (message instanceof RTMPMessageUserControl control) {
+                    if (this.onControlMessage != null) {
+                        this.onControlMessage.onControlMessage(msId, control.eventData());
                     }
                 } else {
-                    if (this.onMessage == null) {
-                        continue; // DROP.
+                    if (this.onMessage != null) {
+                        this.onMessage.onMessage(msId, read.timestamp(), message);
                     }
-
-                    this.onMessage.onMessage(msId, read.timestamp(), message);
                 }
             }
         } catch (IOException | InterruptedException e) {
@@ -156,6 +94,87 @@ public class RTMPConnection {
             throw e;
         }
     }
+
+    private void onCommand(int msId, RTMPMessageCommand0 command) throws IOException, InterruptedException {
+        AMF0Type[] args = command.arguments().toArray(new AMF0Type[0]);
+
+        try {
+            // We handle these specially for RPC calls :^)
+            switch (command.commandName().value()) {
+                case "_result": {
+                    CompletableFuture<AMF0Type[]> future = this.rpcFutures.remove(msId);
+                    if (future == null) return;
+                    future.complete(args);
+                    return; // we do not respond.
+                }
+
+                case "_error": {
+                    CompletableFuture<AMF0Type[]> future = this.rpcFutures.remove(msId);
+                    if (future == null) return;
+
+                    NetStatus status = findStatus(args);
+                    future.completeExceptionally(new CallError(status));
+                    return; // we do not respond.
+                }
+
+                default:
+                    break; // fall through
+            }
+
+            AMF0Type[] response = null;
+            if (this.onCall != null) {
+                response = this.onCall.onCall(msId, command.commandName().value(), args);
+            }
+
+            if (command.transactionId().value() == 0) return; // void.
+
+            if (response == null) {
+                response = new AMF0Type[] {
+                        Null0.INSTANCE
+                };
+            }
+
+            this.sendMessage(
+                msId,
+                0, // ?
+                new RTMPMessageCommand0(
+                    _RESULT,
+                    command.transactionId(),
+                    Arrays.asList(response)
+                )
+            );
+        } catch (CallError e) {
+            if (command.transactionId().value() == 0) return; // void
+
+            this.sendMessage(
+                msId,
+                0, // ?
+                new RTMPMessageCommand0(
+                    _ERROR,
+                    command.transactionId(),
+                    Arrays.asList(e.status.asObject())
+                )
+            );
+        }
+    }
+
+    private static NetStatus findStatus(AMF0Type[] args) {
+        for (AMF0Type arg : args) {
+            if (arg instanceof Object0 obj) {
+                if (obj.map().containsKey("code")) {
+                    return new NetStatus(obj);
+                }
+            } else if (arg instanceof ECMAArray0 arr) {
+                if (arr.map().containsKey("code")) {
+                    return new NetStatus(arr);
+                }
+            }
+        }
+        // TODO should we maybe return a default status and attach the raw args?
+        throw new IllegalArgumentException("Invalid error reply: " + Arrays.toString(args));
+    }
+
+    /* ------------------------ */
 
     public void sendMessage(int msId, int timestamp, RTMPMessage message) throws IOException, InterruptedException {
         this.out.write(
@@ -209,6 +228,11 @@ public class RTMPConnection {
     @FunctionalInterface
     public interface ConnMessageHandler {
         public void onMessage(int msId, int timestamp, RTMPMessage message);
+    }
+
+    @FunctionalInterface
+    public interface ConnControlHandler {
+        public void onControlMessage(int msId, RTMPControlMessage control);
     }
 
 }

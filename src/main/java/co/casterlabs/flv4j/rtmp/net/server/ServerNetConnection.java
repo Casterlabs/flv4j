@@ -17,6 +17,8 @@ import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth.LimitType;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageWindowAcknowledgementSize;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessageStream;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamBeginControlMessage;
 import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.NetConnection;
@@ -36,6 +38,7 @@ public abstract class ServerNetConnection extends NetConnection {
         this.conn = new RTMPConnection(in, out);
         this.conn.onCall = this::onCall;
         this.conn.onMessage = this::onMessage;
+        this.conn.onControlMessage = this::onControlMessage;
     }
 
     public final void handle() throws IOException, InterruptedException {
@@ -50,10 +53,23 @@ public abstract class ServerNetConnection extends NetConnection {
         }
     }
 
+    private final void onControlMessage(int msId, RTMPControlMessage control) {
+        if (control instanceof RTMPControlMessageStream streamControl) {
+            ServerNetStream stream = this.streams.get((int) streamControl.streamId());
+            if (stream != null && stream.onControlMessage != null) {
+                stream.onControlMessage.onControlMessage(streamControl);
+            }
+        } else {
+            if (this.onControlMessage != null) {
+                this.onControlMessage.onControlMessage(control);
+            }
+        }
+    }
+
     private final void onMessage(int msId, int timestamp, RTMPMessage message) {
         if (msId != RTMPConnection.CONTROL_MSID) {
             ServerNetStream stream = this.streams.get(msId);
-            if (stream != null) {
+            if (stream != null && stream.onMessage != null) {
                 stream.onMessage.onMessage(timestamp, message);
             }
             return;

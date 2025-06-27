@@ -6,7 +6,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 // https://rtmp.veriskope.com/docs/spec/#717user-control-message-events
-public record RTMPSetBufferLengthControlMessage(long streamId, long milliseconds) implements RTMPControlMessage {
+public record RTMPSetBufferLengthControlMessage(long streamId, long milliseconds) implements RTMPControlMessageStream {
 
     @Override
     public int size() {
