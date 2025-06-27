@@ -1,6 +1,7 @@
 package co.casterlabs.flv4j.actionscript.amf0;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
@@ -12,6 +13,10 @@ public record TypedObject0(
     String className,
     Map<String, AMF0Type> map
 ) implements ObjectLike {
+
+    public TypedObject0(String className) {
+        this(className, Collections.emptyMap());
+    }
 
     public TypedObject0(String className, Map<String, AMF0Type> map) {
         assert className != null : "className cannot be null";
