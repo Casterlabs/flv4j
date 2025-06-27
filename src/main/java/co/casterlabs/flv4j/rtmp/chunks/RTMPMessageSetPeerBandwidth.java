@@ -20,6 +20,11 @@ public record RTMPMessageSetPeerBandwidth(long windowSize, int rawLimitType) imp
     private static final int SIZE = new ASSizer().u32().u8().size;
 
     @Override
+    public boolean isControl() {
+        return true;
+    }
+
+    @Override
     public int rawType() {
         return 6;
     }

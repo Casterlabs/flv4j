@@ -23,6 +23,11 @@ public record RTMPMessageChunkSize(int chunkSize) implements RTMPMessage {
     private static final int SIZE = new ASSizer().u32().size;
 
     @Override
+    public boolean isControl() {
+        return true;
+    }
+
+    @Override
     public int rawType() {
         return 1;
     }

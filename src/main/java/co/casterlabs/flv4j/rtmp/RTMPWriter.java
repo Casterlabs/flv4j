@@ -26,9 +26,9 @@ public class RTMPWriter {
     private final ReentrantLock writeLock = new ReentrantLock();
     private final ChunkWriter[] chunkWriters = {
             new ChunkWriter(CONTROL_CSID + 0), // control
-            new ChunkWriter(CONTROL_CSID + 1), // audio
-            new ChunkWriter(CONTROL_CSID + 2), // video
-            new ChunkWriter(CONTROL_CSID + 3)  // other
+            new ChunkWriter(CONTROL_CSID + 1), // other
+            new ChunkWriter(CONTROL_CSID + 2), // audio
+            new ChunkWriter(CONTROL_CSID + 3), // video
     };
 
     private int chunkSize = 128;
@@ -55,22 +55,22 @@ public class RTMPWriter {
     }
 
     public void write(long msId, int timestamp, RTMPMessage message) throws IOException {
-        if (message instanceof RTMPMessageChunkSize chunkSize) {
-            this.chunkSize = chunkSize.chunkSize();
-        }
-
         ChunkWriter writer;
-        if (msId == CONTROL_MSID) {
+        if (message.isControl()) {
             writer = this.chunkWriters[0]; // we MUST send this over the control stream.
         } else if (message.rawType() == 8) {
-            writer = this.chunkWriters[1]; // audio
+            writer = this.chunkWriters[2]; // audio
         } else if (message.rawType() == 9) {
-            writer = this.chunkWriters[2]; // video
+            writer = this.chunkWriters[3]; // video
         } else {
-            writer = this.chunkWriters[3]; // other
+            writer = this.chunkWriters[1]; // other
         }
 
         writer.write(msId, timestamp, message);
+
+        if (message instanceof RTMPMessageChunkSize chunkSize) {
+            this.chunkSize = chunkSize.chunkSize();
+        }
     }
 
     @RequiredArgsConstructor

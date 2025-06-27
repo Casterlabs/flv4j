@@ -9,6 +9,10 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=24
 public interface RTMPMessage extends FLVSerializable {
 
+    public default boolean isControl() {
+        return false;
+    }
+
     public int rawType();
 
     public static RTMPMessage parse(int type, int length, ASReader reader) throws IOException {
