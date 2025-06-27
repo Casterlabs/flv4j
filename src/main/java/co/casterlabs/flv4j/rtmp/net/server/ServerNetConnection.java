@@ -3,6 +3,8 @@ package co.casterlabs.flv4j.rtmp.net.server;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
@@ -19,6 +21,8 @@ import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageWindowAcknowledgementSize;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPControlMessageStream;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingRequestControlMessage;
+import co.casterlabs.flv4j.rtmp.chunks.control.RTMPPingResponseControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamBeginControlMessage;
 import co.casterlabs.flv4j.rtmp.net.CallError;
 import co.casterlabs.flv4j.rtmp.net.ConnectArgs;
@@ -27,6 +31,8 @@ import co.casterlabs.flv4j.rtmp.net.NetStatus;
 import co.casterlabs.flv4j.rtmp.net.RTMPConnection;
 
 public abstract class ServerNetConnection extends NetConnection {
+    private static final long PING_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+
     private static final int DEFAULT_CHUNK_SIZE = 4096;
     private static final int DEFAULT_WINDOW_ACK_SIZE = 2500000;
 
@@ -34,6 +40,8 @@ public abstract class ServerNetConnection extends NetConnection {
 
     private AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved for control.
     Map<Integer, ServerNetStream> streams = new HashMap<>();
+
+    private long latency = -1;
 
     public ServerNetConnection(RTMPReader in, RTMPWriter out) {
         this.conn = new RTMPConnection(in, out);
@@ -43,10 +51,35 @@ public abstract class ServerNetConnection extends NetConnection {
     }
 
     public final void handle() throws IOException, InterruptedException {
+        this.handle(Thread::new);
+    }
+
+    public final void handle(ThreadFactory factory) throws IOException, InterruptedException {
+        boolean[] $closed = new boolean[1];
         try {
             this.conn.handshake();
+
+            factory.newThread(() -> {
+                try {
+                    while (!$closed[0]) {
+                        // 24 bit timestamp, it's arbitrary since we're the one decoding it.
+                        long timestamp = System.currentTimeMillis() & 0xFFFFFF;
+
+                        this.sendMessage(
+                            0,
+                            new RTMPMessageUserControl(
+                                new RTMPPingRequestControlMessage(timestamp)
+                            )
+                        );
+
+                        Thread.sleep(PING_INTERVAL);
+                    }
+                } catch (InterruptedException | IOException ignored) {}
+            }).start();
+
             this.conn.run();
         } finally {
+            $closed[0] = true;
             for (ServerNetStream stream : this.streams.values()) {
                 try {
                     stream.deleteStream();
@@ -55,8 +88,16 @@ public abstract class ServerNetConnection extends NetConnection {
         }
     }
 
+    public long latency() {
+        return this.latency;
+    }
+
     private final void onControlMessage(int msId, RTMPControlMessage control) {
-        if (control instanceof RTMPControlMessageStream streamControl) {
+        if (control instanceof RTMPPingResponseControlMessage ping) {
+            long timestamp = ping.timestamp();
+            long now = System.currentTimeMillis() & 0xFFFFFF; // 24 bit timestamp, it's arbitrary since we're the one decoding it.
+            this.latency = now - timestamp;
+        } else if (control instanceof RTMPControlMessageStream streamControl) {
             ServerNetStream stream = this.streams.get((int) streamControl.streamId());
             if (stream != null && stream.onControlMessage != null) {
                 stream.onControlMessage.onControlMessage(streamControl);
