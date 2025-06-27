@@ -9,7 +9,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=5
 public record Object0(
     Map<String, AMF0Type> map
-) implements AMF0Type {
+) implements AMF0ObjectLike {
 
     public Object0(Map<String, AMF0Type> map) {
         assert map != null : "map cannot be null";

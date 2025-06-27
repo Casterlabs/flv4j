@@ -10,7 +10,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6
 public record ECMAArray0(
     Map<String, AMF0Type> map
-) implements AMF0Type {
+) implements AMF0ObjectLike {
 
     public ECMAArray0(Map<String, AMF0Type> map) {
         ASAssert.u32(map.size(), "map size");

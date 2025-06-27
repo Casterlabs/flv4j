@@ -10,11 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
 
+import co.casterlabs.flv4j.actionscript.amf0.AMF0ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
-import co.casterlabs.flv4j.actionscript.amf0.ECMAArray0;
 import co.casterlabs.flv4j.actionscript.amf0.Null0;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
-import co.casterlabs.flv4j.actionscript.amf0.Object0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
 import co.casterlabs.flv4j.rtmp.RTMPReader;
 import co.casterlabs.flv4j.rtmp.RTMPWriter;
@@ -51,7 +50,7 @@ public class RTMPConnection {
         this.in.setWindowAcknowledgementSize(size);
     }
 
-    public void run() throws IOException, InterruptedException {
+    public void handshake() throws IOException, InterruptedException {
         this.in.handshake0(); // Consume. Should always be version 3.
         this.out.handshake0();
 
@@ -64,7 +63,9 @@ public class RTMPConnection {
         if (!this.out.validateHandshake2(handshake2)) {
             throw new IOException("Handshake failed!");
         }
+    }
 
+    public void run() throws IOException, InterruptedException {
         try {
             while (true) {
                 if (this.in.needsAck()) {
@@ -160,13 +161,9 @@ public class RTMPConnection {
 
     private static NetStatus findStatus(AMF0Type[] args) {
         for (AMF0Type arg : args) {
-            if (arg instanceof Object0 obj) {
+            if (arg instanceof AMF0ObjectLike obj) {
                 if (obj.map().containsKey("code")) {
                     return new NetStatus(obj);
-                }
-            } else if (arg instanceof ECMAArray0 arr) {
-                if (arr.map().containsKey("code")) {
-                    return new NetStatus(arr);
                 }
             }
         }

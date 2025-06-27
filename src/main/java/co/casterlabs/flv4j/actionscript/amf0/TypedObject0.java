@@ -10,7 +10,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record TypedObject0(
     String className,
     Map<String, AMF0Type> map
-) implements AMF0Type {
+) implements AMF0ObjectLike {
 
     public TypedObject0(String className, Map<String, AMF0Type> map) {
         assert className != null : "className cannot be null";

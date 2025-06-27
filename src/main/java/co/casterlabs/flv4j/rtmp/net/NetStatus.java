@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.rtmp.net;
 
 import java.util.Map;
 
-import co.casterlabs.flv4j.actionscript.amf0.ECMAArray0;
+import co.casterlabs.flv4j.actionscript.amf0.AMF0ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.Object0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
 import lombok.NonNull;
@@ -54,17 +54,13 @@ public record NetStatus(
         );
     }
 
-    public NetStatus(Object0 obj) {
+    public NetStatus(AMF0ObjectLike obj) {
         this(
             ((String0) obj.map().getOrDefault("code", EMPTY_STR)).value(),
             ((String0) obj.map().getOrDefault("level", EMPTY_STR)).value(),
             ((String0) obj.map().getOrDefault("description", EMPTY_STR)).value(),
-            obj
+            obj instanceof Object0 ? (Object0) obj : new Object0(obj.map())
         );
-    }
-
-    public NetStatus(ECMAArray0 arr) {
-        this(new Object0(arr.map()));
     }
 
 }
