@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
 
+import co.casterlabs.flv4j.EndOfStreamException;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.Null0;
@@ -91,7 +92,7 @@ public class RTMPConnection {
                     }
                 }
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (EndOfStreamException | IOException | InterruptedException e) {
             this.rpcFutures.forEach((k, v) -> v.reject(e));
             throw e;
         }
