@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
 import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
 
 public abstract class RPCHandler {
     public static final int CONTROL_MSID = 0;
@@ -25,6 +26,11 @@ public abstract class RPCHandler {
     @FunctionalInterface
     public interface CallHandler {
         public @Nullable AMF0Type[] onCall(int msId, String method, AMF0Type... args) throws IOException, InterruptedException, CallError;
+    }
+
+    @FunctionalInterface
+    public interface MessageHandler {
+        public void onMessage(int msId, int timestamp, RTMPMessage message);
     }
 
 }
