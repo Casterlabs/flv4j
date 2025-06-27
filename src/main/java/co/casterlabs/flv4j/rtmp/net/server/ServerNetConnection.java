@@ -38,7 +38,7 @@ public abstract class ServerNetConnection extends NetConnection {
         this.conn.onMessage = this::onMessage;
     }
 
-    public final void run() throws IOException, InterruptedException {
+    public final void handle() throws IOException, InterruptedException {
         try {
             this.conn.run();
         } finally {
