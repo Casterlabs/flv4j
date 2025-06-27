@@ -11,13 +11,14 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 class ChunkStream {
+    private final RTMPReader rtmp;
+    private final ASReader reader;
+
     private int previousMessageLength;
     private int previousMessageTypeId;
     private long previousMessageStreamId;
 
     private ChunkInProgress inProgress;
-
-    private final ASReader reader;
 
     void abort() {
         this.inProgress = null;
@@ -37,8 +38,11 @@ class ChunkStream {
                 messageTypeId = this.reader.u8();
                 messageStreamId = this.reader.u32le();
 
+                this.rtmp.incrementRead(11);
+
                 if (timestamp == 0xFFFFFF) {
                     timestamp = (int) this.reader.u32() % 0xFFFFFFFF;
+                    this.rtmp.incrementRead(4);
                 }
                 break;
             }
@@ -50,8 +54,11 @@ class ChunkStream {
                 messageLength = this.reader.u24();
                 messageTypeId = this.reader.u8();
 
+                this.rtmp.incrementRead(7);
+
                 if (timestampDelta == 0xFFFFFF) {
                     timestampDelta = (int) this.reader.u32() % 0xFFFFFFFF;
+                    this.rtmp.incrementRead(4);
                 }
 
                 timestamp += timestampDelta;
@@ -63,8 +70,11 @@ class ChunkStream {
                 // (reuse everything except timestamp)
                 long timestampDelta = this.reader.u24();
 
+                this.rtmp.incrementRead(3);
+
                 if (timestampDelta == 0xFFFFFF) {
                     timestampDelta = this.reader.u32();
+                    this.rtmp.incrementRead(4);
                 }
 
                 timestamp += timestampDelta;
@@ -94,6 +104,7 @@ class ChunkStream {
             }
 
             int maxToRead = Math.min(chunkSize, this.inProgress.remaining());
+            this.rtmp.incrementRead(maxToRead);
             if (this.inProgress.append(this.reader.bytes(maxToRead))) {
                 return null;
             }

@@ -18,9 +18,13 @@ import co.casterlabs.flv4j.rtmp.RTMPReader;
 import co.casterlabs.flv4j.rtmp.RTMPWriter;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPChunk;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessage;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageAcknowledgement;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageChunkSize;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageCommand0;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageSetPeerBandwidth.LimitType;
 import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageUserControl;
+import co.casterlabs.flv4j.rtmp.chunks.RTMPMessageWindowAcknowledgementSize;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamBeginControlMessage;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
@@ -31,6 +35,7 @@ import lombok.SneakyThrows;
 
 public abstract class NetConnectionServer extends NetConnection {
     private static final int CHUNK_SIZE = 4096;
+    private static final int WINDOW_ACK_SIZE = 2500000;
 
     private final RTMPReader in;
     private final RTMPWriter out;
@@ -62,13 +67,15 @@ public abstract class NetConnectionServer extends NetConnection {
 
         try {
             while (true) {
+                if (this.in.needsAck()) {
+                    this.sendMessage(CONTROL_MSID, 0, new RTMPMessageAcknowledgement(this.in.ackSeq()));
+                }
+
                 RTMPChunk<?> read = this.in.read();
                 if (read == null) continue;
 
                 int msId = (int) read.messageStreamId();
                 RTMPMessage message = read.message();
-
-                // TODO handle certain protocol messages.
 
                 if (message instanceof RTMPMessageCommand0 command) {
                     AMF0Type[] args = command.arguments().toArray(new AMF0Type[0]);
@@ -155,18 +162,25 @@ public abstract class NetConnectionServer extends NetConnection {
             case "connect": {
                 Object0 res = this.connect(args);
 
-                // TODO window ack size/bandwidth.
-
+                this.sendMessage(
+                    0,
+                    new RTMPMessageWindowAcknowledgementSize(WINDOW_ACK_SIZE)
+                );
+                this.sendMessage(
+                    0,
+                    new RTMPMessageSetPeerBandwidth(WINDOW_ACK_SIZE, LimitType.DYNAMIC.id)
+                );
+                this.in.setWindowAcknowledgementSize(WINDOW_ACK_SIZE);
+                this.sendMessage(
+                    0,
+                    new RTMPMessageChunkSize(CHUNK_SIZE)
+                );
                 this.sendMessage(
                     0,
                     new RTMPMessageUserControl(
                         0,
                         new RTMPStreamBeginControlMessage(0)
                     )
-                );
-                this.sendMessage(
-                    0,
-                    new RTMPMessageChunkSize(CHUNK_SIZE)
                 );
 
                 return new AMF0Type[] {
