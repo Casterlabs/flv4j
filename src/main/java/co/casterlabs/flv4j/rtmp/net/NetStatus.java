@@ -34,7 +34,7 @@ public record NetStatus(
     
     public static final NetStatus NS_PLAY_FAILED               = new NetStatus("NetStream.Play.Failed",                  "error",  "Failed to play stream.");
     
-    public static final NetStatus NS_PUBLISH_BADNAME           = new NetStatus("NetStream.Publish.Failed",               "error",  "Stream is already in use.");
+    public static final NetStatus NS_PUBLISH_BADNAME           = new NetStatus("NetStream.Publish.BadName",              "error",  "Stream is already in use.");
     public static final NetStatus NS_PUBLISH_FAILED            = new NetStatus("NetStream.Publish.Failed",               "error",  "Failed to publish stream.");
     public static final NetStatus NS_PUBLISH_START             = new NetStatus("NetStream.Publish.Start",                "status", "Stream started.");
 
