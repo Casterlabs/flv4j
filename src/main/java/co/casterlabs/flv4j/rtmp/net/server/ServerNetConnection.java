@@ -202,6 +202,16 @@ public abstract class ServerNetConnection extends NetConnection {
     /* ------------------------ */
 
     @Override
+    public final void setStatus(NetStatus status) {
+        super.setStatus(status);
+
+        // Forward to client
+        try {
+            this.callVoid("onStatus", Null0.INSTANCE, status.asObject());
+        } catch (IOException | InterruptedException ignored) {}
+    }
+
+    @Override
     public List<NetStream> streams() {
         return new ArrayList<>(this.streams.values());
     }

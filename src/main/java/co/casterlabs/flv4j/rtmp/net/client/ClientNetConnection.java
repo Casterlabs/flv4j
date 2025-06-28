@@ -92,7 +92,10 @@ public abstract class ClientNetConnection extends NetConnection {
             }).start();
 
             return this.call("connect", args.toAMF0())
-                .then((result) -> (ObjectLike) result[0])
+                .then((result) -> {
+                    this.setStatus(new NetStatus((ObjectLike) result[1]));
+                    return (ObjectLike) result[0];
+                })
                 .await();
         } catch (IOException | InterruptedException | CallError e) {
             if (!$closed[0]) {
@@ -158,6 +161,12 @@ public abstract class ClientNetConnection extends NetConnection {
         }
 
         switch (method) {
+            case "onStatus": {
+                NetStatus status = new NetStatus((ObjectLike) args[1]);
+                this.setStatus(status);
+                return null;
+            }
+
             default:
                 if (this.onCall == null) {
                     throw new CallError(NetStatus.NC_CALL_FAILED);
