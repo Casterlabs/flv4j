@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.StringLike;
@@ -82,6 +84,12 @@ public class ConnectArgs {
     private final Map<String, Integer> audioFourCcInfoMap = new HashMap<>();
     // the legacy fourCcList is created dynamically :^)
 
+    /**
+     * For clients instantiating, you can add additional parameters here. For
+     * servers, this contains the entire raw parameter object.
+     */
+    private Map<String, AMF0Type> additionalParams = new HashMap<>();
+
     private AMF0Type[] optionalArgs = {};
 
     public ConnectArgs legacyFourCcList(String[] codecs) {
@@ -89,6 +97,24 @@ public class ConnectArgs {
     }
 
     /* ------------------------ */
+
+    public ConnectArgs additionalParam(String key, AMF0Type value) {
+        this.additionalParams.put(key, value);
+        return this;
+    }
+
+    public @Nullable AMF0Type additionalParam(String key) {
+        return this.additionalParams.get(key);
+    }
+
+    public ConnectArgs optionalArgs(AMF0Type... args) {
+        this.optionalArgs = args;
+        return this;
+    }
+
+    public AMF0Type[] optionalArgs() {
+        return this.optionalArgs;
+    }
 
     public ConnectArgs canDecodeVideo(String codec, boolean can) {
         int mask = this.videoFourCcInfoMap.getOrDefault(codec, 0);
@@ -191,6 +217,10 @@ public class ConnectArgs {
     private Object0 toObject() {
         Map<String, AMF0Type> map = new HashMap<>();
 
+        if (this.additionalParams != null) {
+            map.putAll(this.additionalParams);
+        }
+
         if (this.app != null) map.put("app", new String0(this.app));
         if (this.type != null) map.put("type", new String0(this.type));
         if (this.flashVersion != null) map.put("flashVer", new String0(this.flashVersion));
@@ -261,6 +291,7 @@ public class ConnectArgs {
     private static ConnectArgs from(Map<String, AMF0Type> map, AMF0Type... optional) {
         ConnectArgs args = new ConnectArgs();
         args.optionalArgs = optional;
+        args.additionalParams = map;
 
         if (map.containsKey("app")) args.app = ((StringLike) map.get("app")).value();
         if (map.containsKey("type")) args.type = ((StringLike) map.get("type")).value();
