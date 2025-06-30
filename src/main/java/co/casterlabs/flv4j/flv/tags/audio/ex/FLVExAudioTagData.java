@@ -84,7 +84,7 @@ public record FLVExAudioTagData(
 
                 sizer.u8();
 
-                if (this.rawMultitrackType == FLVExAudioMultitrackType.ONE_TRACK.id) {
+                if (this.rawMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
                     sizer.u24();
                 }
             }
@@ -103,10 +103,9 @@ public record FLVExAudioTagData(
                 writer.u8(fb);
             } else {
                 int fb = 9 << 4 | FLVExAudioPacketType.MULTITRACK.id;
+                int sb = this.rawMultitrackType << 4 | this.rawType;
                 writer.u8(fb);
-
-                int b = this.rawMultitrackType << 4 | this.rawType;
-                writer.u8(b);
+                writer.u8(sb);
             }
         } else {
             int fb = 9 << 4 | FLVExAudioPacketType.MOD_EX.id;
@@ -117,8 +116,8 @@ public record FLVExAudioTagData(
             }
 
             if (this.rawMultitrackType != -1) {
-                int b = this.rawMultitrackType << 4 | this.rawType;
-                writer.u8(b);
+                int sb = this.rawMultitrackType << 4 | this.rawType;
+                writer.u8(sb);
             }
         }
 
@@ -129,22 +128,21 @@ public record FLVExAudioTagData(
 
         for (FLVExAudioTrack track : this.tracks) {
             if (this.rawMultitrackType != -1) {
-                int trackHeaderSize = 0;
+                int headerSize = 0;
 
                 if (this.rawMultitrackType == FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
                     writer.u32(track.codec().bits());
-                    trackHeaderSize += 4;
+                    headerSize += 4;
                 }
 
                 writer.u8(track.id());
-                trackHeaderSize += 1;
+                headerSize++;
 
-                if (this.rawMultitrackType == FLVExAudioMultitrackType.ONE_TRACK.id) {
-                    trackHeaderSize += 3;
-                    writer.u24(track.data().size() + trackHeaderSize);
+                if (this.rawMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
+                    headerSize += 3;
+                    writer.u24(track.data().size() + headerSize);
                 }
             }
-
             track.data().serialize(writer);
         }
     }
@@ -152,6 +150,7 @@ public record FLVExAudioTagData(
     public static FLVExAudioTagData parse(int fb, ASReader reader, int length) throws IOException {
         int rawAudioPacketType = fb & 0b1111;
         List<FLVExAudioModifier> modifiers = new LinkedList<>();
+
         while (rawAudioPacketType == FLVExAudioPacketType.MOD_EX.id) {
             FLVExAudioModifier mod = FLVExAudioModifier.parse(reader);
             modifiers.add(mod);
@@ -160,6 +159,7 @@ public record FLVExAudioTagData(
 
         int rawAudioMultitrackType = -1; // -1 if not multitrack
         FourCC codec = null; // Silence the compiler
+
         if (rawAudioPacketType == FLVExAudioPacketType.MULTITRACK.id) {
             int b = reader.u8();
 
@@ -173,23 +173,27 @@ public record FLVExAudioTagData(
 
         List<FLVExAudioTrack> tracks = new LinkedList<>();
         while (reader.bytesRead() < length) {
-            int audioTrackId = 0; // default for single-track audio
-            int trackDataSize = length - reader.bytesRead() - 1; // remaining bytes.
+            int audioTrackId = 0;
+            int trackDataSize;
 
-            if (rawAudioMultitrackType != -1) {
-                int trackHeaderSize = 0;
+            if (rawAudioMultitrackType == -1) {
+                trackDataSize = length - reader.bytesRead();
+            } else {
+                int headerSize = 0;
 
                 if (rawAudioMultitrackType == FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
                     codec = FourCC.parse(reader);
-                    trackHeaderSize += 4;
+                    headerSize += 4;
                 }
 
                 audioTrackId = reader.u8();
-                trackHeaderSize++;
+                headerSize++;
 
                 if (rawAudioMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
-                    trackHeaderSize += 3;
-                    trackDataSize = reader.u24() - trackHeaderSize;
+                    trackDataSize = reader.u24();
+                    trackDataSize -= headerSize;
+                } else {
+                    trackDataSize = length - reader.bytesRead();
                 }
             }
 
