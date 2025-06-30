@@ -1,17 +1,11 @@
 package co.casterlabs.flv4j.flv.tags.video.data;
 
-import co.casterlabs.flv4j.FLVRawSerializable;
+import co.casterlabs.flv4j.FLVSerializable;
 
-public record VideoData(
-    byte[] raw
-) implements FLVRawSerializable {
+public interface VideoData extends FLVSerializable {
 
-    @Override
-    public final String toString() {
-        return String.format(
-            "VideoData[size=%d]",
-            this.size()
-        );
-    }
+    public boolean isSequenceHeader();
+
+    public int compositionTimeOffset();
 
 }

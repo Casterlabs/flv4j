@@ -7,6 +7,8 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.flv.tags.FLVTagData;
+import co.casterlabs.flv4j.flv.tags.video.data.AVCVideoData;
+import co.casterlabs.flv4j.flv.tags.video.data.RawVideoData;
 import co.casterlabs.flv4j.flv.tags.video.data.VideoData;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
@@ -49,16 +51,13 @@ public record FLVVideoPayload(
             return this.rawCodec == 0 || this.rawCodec == 4;
         }
 
-        return switch (this.codec()) {
-//          case H264 -> ((AVCVideoData) this.data).rawType() == 0;
-            case H264 -> this.data.raw()[0] == 0;
-            default -> false; // TODO properly parse out the data.
-        };
+        return this.data.isSequenceHeader();
     }
 
     @Override
     public int size() {
-        return new ASSizer().u8()
+        return new ASSizer()
+            .u8()
             .bytes(this.data.size()).size;
     }
 
@@ -77,8 +76,8 @@ public record FLVVideoPayload(
 
         int dataLen = length - 1;
         VideoData data = switch (codecId) {
-//            case 7 -> AVCVideoData.parse(reader.limited(dataLen), dataLen);
-            default -> new VideoData(reader.bytes(dataLen));
+            case 7 -> AVCVideoData.parse(reader.limited(dataLen), dataLen);
+            default -> new RawVideoData(reader.bytes(dataLen));
         };
 
         return new FLVVideoPayload(
