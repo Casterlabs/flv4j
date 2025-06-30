@@ -25,11 +25,11 @@ class ChunkStream {
     }
 
     @Nullable
-    RTMPChunk<?> read(int previousTimestamp, int format, int csId, int chunkSize) throws IOException {
-        int timestamp = previousTimestamp;
-        int messageLength = this.previousMessageLength;
-        int messageTypeId = this.previousMessageTypeId;
-        long messageStreamId = this.previousMessageStreamId;
+    RTMPChunk<?> read(int format, int csId, int chunkSize) throws IOException {
+        long timestamp;
+        int messageLength;
+        int messageTypeId;
+        long messageStreamId;
         switch (format) {
             case 0: {
                 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
@@ -41,7 +41,7 @@ class ChunkStream {
                 this.rtmp.incrementRead(11);
 
                 if (timestamp == 0xFFFFFF) {
-                    timestamp = (int) this.reader.u32() % 0xFFFFFFFF;
+                    timestamp = this.reader.u32();
                     this.rtmp.incrementRead(4);
                 }
                 break;
@@ -50,24 +50,30 @@ class ChunkStream {
             case 1: {
                 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
                 // (reuse messageStreamId)
-                int timestampDelta = this.reader.u24();
+                messageStreamId = this.previousMessageStreamId;
+
+                long timestampDelta = this.reader.u24();
                 messageLength = this.reader.u24();
                 messageTypeId = this.reader.u8();
 
                 this.rtmp.incrementRead(7);
 
                 if (timestampDelta == 0xFFFFFF) {
-                    timestampDelta = (int) this.reader.u32() % 0xFFFFFFFF;
+                    timestampDelta = this.reader.u32();
                     this.rtmp.incrementRead(4);
                 }
 
-                timestamp += timestampDelta;
+                timestamp = this.rtmp.previousTimestamp + timestampDelta;
                 break;
             }
 
             case 2: {
                 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
                 // (reuse everything except timestamp)
+                messageLength = this.previousMessageLength;
+                messageTypeId = this.previousMessageTypeId;
+                messageStreamId = this.previousMessageStreamId;
+
                 long timestampDelta = this.reader.u24();
 
                 this.rtmp.incrementRead(3);
@@ -77,19 +83,26 @@ class ChunkStream {
                     this.rtmp.incrementRead(4);
                 }
 
-                timestamp += timestampDelta;
+                timestamp = this.rtmp.previousTimestamp + timestampDelta;
                 break;
             }
 
             case 3:
                 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
                 // (reuse all previous values)
+                timestamp = this.rtmp.previousTimestamp;
+                messageLength = this.previousMessageLength;
+                messageTypeId = this.previousMessageTypeId;
+                messageStreamId = this.previousMessageStreamId;
                 break;
 
             default: // Silence the compiler.
                 throw new IllegalStateException();
         }
 
+        int timestamp31 = (int) (timestamp & 0x7FFFFFFFL);
+
+        this.rtmp.previousTimestamp = timestamp31;
         this.previousMessageLength = messageLength;
         this.previousMessageTypeId = messageTypeId;
         this.previousMessageStreamId = messageStreamId;
@@ -115,7 +128,7 @@ class ChunkStream {
             message = RTMPMessage.parse(messageTypeId, messageLength, this.reader);
         }
 
-        return new RTMPChunk<>(timestamp, csId, messageTypeId, messageStreamId, message);
+        return new RTMPChunk<>(timestamp31, csId, messageTypeId, messageStreamId, message);
     }
 
 }

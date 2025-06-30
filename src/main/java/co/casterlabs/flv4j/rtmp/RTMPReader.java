@@ -21,7 +21,7 @@ public class RTMPReader {
     private final ASReader reader;
     private final Map<Integer, ChunkStream> chunkStreams = new HashMap<>();
 
-    private int previousTimestamp;
+    int previousTimestamp;
     private int chunkSize = 128;
 
     private @Setter long windowAcknowledgementSize = -1;
@@ -81,7 +81,7 @@ public class RTMPReader {
             this.chunkStreams.put(csId, cs);
         }
 
-        RTMPChunk<?> chunk = cs.read(this.previousTimestamp, format, csId, this.chunkSize);
+        RTMPChunk<?> chunk = cs.read(format, csId, this.chunkSize);
         if (chunk == null) {
             return null;
         }
