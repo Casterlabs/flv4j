@@ -84,11 +84,6 @@ public abstract class ServerNetConnection extends NetConnection {
             this.conn.run();
         } finally {
             $closed[0] = true;
-            for (ServerNetStream stream : this.streams.values()) {
-                try {
-                    stream.deleteStream();
-                } catch (IOException | InterruptedException ignored) {}
-            }
         }
     }
 
