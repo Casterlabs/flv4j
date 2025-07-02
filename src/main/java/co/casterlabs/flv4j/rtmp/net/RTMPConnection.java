@@ -137,27 +137,37 @@ public class RTMPConnection {
                 };
             }
 
-            this.sendMessage(
-                msId,
-                0, // ?
-                new RTMPMessageCommand0(
-                    _RESULT,
-                    command.transactionId(),
-                    Arrays.asList(response)
-                )
-            );
+            try {
+                this.sendMessage(
+                    msId,
+                    0, // ?
+                    new RTMPMessageCommand0(
+                        _RESULT,
+                        command.transactionId(),
+                        Arrays.asList(response)
+                    )
+                );
+            } catch (IOException ignored) {
+                // We're probably shutting down, which means sending will fail. In that case, we
+                // need to read() out the remaining messages and then that can throw it's own
+                // IOException.
+            }
         } catch (CallError e) {
             if (command.transactionId().value() == 0) return; // void
 
-            this.sendMessage(
-                msId,
-                0, // ?
-                new RTMPMessageCommand0(
-                    _ERROR,
-                    command.transactionId(),
-                    Arrays.asList(e.status.asObject())
-                )
-            );
+            try {
+                this.sendMessage(
+                    msId,
+                    0, // ?
+                    new RTMPMessageCommand0(
+                        _ERROR,
+                        command.transactionId(),
+                        Arrays.asList(e.status.asObject())
+                    )
+                );
+            } catch (IOException ignored) {
+                // See the above catch{} for explanation.
+            }
         }
     }
 
@@ -175,7 +185,7 @@ public class RTMPConnection {
 
     /* ------------------------ */
 
-    public void sendMessage(int msId, int timestamp, RTMPMessage message) throws IOException, InterruptedException {
+    public void sendMessage(int msId, int timestamp, RTMPMessage message) throws IOException {
         this.out.write(
             msId,
             timestamp,
@@ -183,7 +193,7 @@ public class RTMPConnection {
         );
     }
 
-    public void callVoid(int msId, String method, AMF0Type... args) throws IOException, InterruptedException {
+    public void callVoid(int msId, String method, AMF0Type... args) throws IOException {
         this.sendMessage(
             msId,
             0, // ?
@@ -210,7 +220,7 @@ public class RTMPConnection {
                         Arrays.asList(args)
                     )
                 );
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 this.rpcFutures.remove(tsId);
                 handle.reject(e);
             }
