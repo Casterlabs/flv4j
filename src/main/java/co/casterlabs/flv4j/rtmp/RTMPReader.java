@@ -209,7 +209,7 @@ public class RTMPReader {
 
             int timestamp31 = (int) (calculatedTs & 0x7FFFFFFFL);
 
-            System.out.printf("%d: cs=%d ts=%d td=%d ml=%d mt=%d mi=%d\n", format, csId, calculatedTs, timestampDelta, messageLength, messageTypeId, messageStreamId);
+//            System.out.printf("%d: cs=%d ts=%d td=%d ml=%d mt=%d mi=%d\n", format, csId, calculatedTs, timestampDelta, messageLength, messageTypeId, messageStreamId);
 
             this.previousTimestamp = calculatedTs;
             this.previousDelta = timestampDelta;
