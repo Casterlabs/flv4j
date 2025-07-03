@@ -96,7 +96,7 @@ public class RTMPReader {
         if (chunk.message() instanceof RTMPMessageAbort abort) {
             ChunkStream stream = this.chunkStreams[(int) abort.streamId()];
             if (stream != null) {
-                stream.inProgress = null;
+                stream.inProgressBuffer = null;
             }
             return null;
         } else if (chunk.message() instanceof RTMPMessageChunkSize chunkMessage) {
@@ -108,13 +108,14 @@ public class RTMPReader {
         return chunk;
     }
 
-    class ChunkStream {
+    private class ChunkStream {
         private int previousMessageLength;
         private int previousMessageTypeId;
         private long previousMessageStreamId;
         private int previousDelta = 0;
 
-        private ChunkInProgress inProgress;
+        private byte[] inProgressBuffer;
+        private int inProgressOffset = 0;
 
         @Nullable
         RTMPChunk<?> read(int format, int csId, int chunkSize) throws IOException {
@@ -216,47 +217,30 @@ public class RTMPReader {
 
             RTMPMessage message;
             if (messageLength > chunkSize && messageTypeId != 2) {
-                if (this.inProgress == null) {
-                    this.inProgress = new ChunkInProgress(messageLength);
+                if (this.inProgressBuffer == null) {
+                    this.inProgressBuffer = new byte[messageLength];
+                    this.inProgressOffset = 0;
                 }
 
-                int maxToRead = Math.min(chunkSize, this.inProgress.remaining());
+                int maxToRead = Math.min(chunkSize, this.inProgressBuffer.length - this.inProgressOffset);
                 incrementRead(maxToRead);
-                if (this.inProgress.append(reader.bytes(maxToRead))) {
-                    return null;
+                {
+                    byte[] bytes = reader.bytes(maxToRead);
+                    System.arraycopy(bytes, 0, this.inProgressBuffer, this.inProgressOffset, bytes.length);
+                    this.inProgressOffset += bytes.length;
+
+                    if (this.inProgressOffset < this.inProgressBuffer.length) {
+                        return null;
+                    }
                 }
 
-                message = RTMPMessage.parse(messageTypeId, this.inProgress.buffer.length, new ASReader(this.inProgress.buffer));
-                this.inProgress = null;
+                message = RTMPMessage.parse(messageTypeId, this.inProgressBuffer.length, new ASReader(this.inProgressBuffer));
+                this.inProgressBuffer = null;
             } else {
                 message = RTMPMessage.parse(messageTypeId, messageLength, reader);
             }
 
             return new RTMPChunk<>(timestamp31, csId, messageTypeId, messageStreamId, message);
-        }
-
-    }
-
-    private static class ChunkInProgress {
-        final byte[] buffer;
-        private int writeOffset = 0;
-
-        ChunkInProgress(int length) {
-            this.buffer = new byte[length];
-        }
-
-        int remaining() {
-            return this.buffer.length - this.writeOffset;
-        }
-
-        /**
-         * @return true if more data is needed.
-         */
-        boolean append(byte[] bytes) {
-            System.arraycopy(bytes, 0, this.buffer, this.writeOffset, bytes.length);
-            this.writeOffset += bytes.length;
-
-            return this.writeOffset < this.buffer.length;
         }
 
     }
