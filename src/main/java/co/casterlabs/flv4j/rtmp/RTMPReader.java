@@ -112,6 +112,7 @@ public class RTMPReader {
         private int previousMessageLength;
         private int previousMessageTypeId;
         private long previousMessageStreamId;
+        private int previousDelta = 0;
 
         private ChunkInProgress inProgress;
 
@@ -135,6 +136,8 @@ public class RTMPReader {
                         timestamp = reader.u32();
                         incrementRead(4);
                     }
+
+                    this.previousDelta = 0;
                     break;
                 }
 
@@ -154,6 +157,7 @@ public class RTMPReader {
                         incrementRead(4);
                     }
 
+                    this.previousDelta = (int) timestampDelta;
                     timestamp = previousTimestamp + timestampDelta;
                     break;
                 }
@@ -174,6 +178,7 @@ public class RTMPReader {
                         incrementRead(4);
                     }
 
+                    this.previousDelta = (int) timestampDelta;
                     timestamp = previousTimestamp + timestampDelta;
                     break;
                 }
@@ -181,7 +186,15 @@ public class RTMPReader {
                 case 3:
                     // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
                     // (reuse all previous values)
-                    timestamp = previousTimestamp;
+
+                    // NB: Documentation missing critical information: "Reuse all previous values"
+                    // also means reuse the timestamp delta if the previous chunk in the stream had
+                    // a delta.
+
+                    // So for type0 -> type3, we reuse the whole timestamp (implicit delta of 0)
+                    // For type1/2 -> type3, we use their delta.
+
+                    timestamp = previousTimestamp + this.previousDelta;
                     messageLength = this.previousMessageLength;
                     messageTypeId = this.previousMessageTypeId;
                     messageStreamId = this.previousMessageStreamId;
