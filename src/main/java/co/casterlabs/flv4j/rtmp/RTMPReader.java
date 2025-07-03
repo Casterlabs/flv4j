@@ -195,7 +195,10 @@ public class RTMPReader {
                     // So for type0 -> type3, we reuse the whole timestamp (implicit delta of 0)
                     // For type1/2 -> type3, we use their delta.
 
-                    timestamp = previousTimestamp + this.previousDelta;
+                    // NB: When a message is split into multiple chunks, we DO NOT reuse the delta.
+                    boolean isCurrentlyChunking = this.inProgressBuffer != null;
+
+                    timestamp = isCurrentlyChunking ? previousTimestamp : previousTimestamp + this.previousDelta;
                     messageLength = this.previousMessageLength;
                     messageTypeId = this.previousMessageTypeId;
                     messageStreamId = this.previousMessageStreamId;
