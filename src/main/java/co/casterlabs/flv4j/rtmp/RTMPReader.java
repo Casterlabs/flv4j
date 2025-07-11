@@ -192,10 +192,8 @@ public class RTMPReader {
                     // For type1/2 -> type3, we use their delta.
 
                     // NB: When a message is split into multiple chunks, we DO NOT reuse the delta.
-                    boolean isCurrentlyChunking = this.inProgressBuffer != null;
-
                     timestamp = this.previousTimestamp;
-                    timestampDelta = isCurrentlyChunking ? 0 : this.previousDelta;
+                    timestampDelta = this.previousDelta;
                     messageLength = this.previousMessageLength;
                     messageTypeId = this.previousMessageTypeId;
                     messageStreamId = this.previousMessageStreamId;
@@ -205,17 +203,24 @@ public class RTMPReader {
                     throw new IllegalStateException();
             }
 
-            long calculatedTs = timestamp + timestampDelta & 0xFFFFFFFFL;
+            boolean isCurrentlyChunking = this.inProgressBuffer != null;
 
-            int timestamp31 = (int) (calculatedTs & 0x7FFFFFFFL);
+            int timestamp31;
+            if (isCurrentlyChunking) {
+//                System.out.printf("CHUNKED %d: cs=%d ts=%d td=%d ml=%d mt=%d mi=%d\n", format, csId, 0, timestampDelta, messageLength, messageTypeId, messageStreamId);
+                timestamp31 = (int) (timestamp & 0x7FFFFFFFL);
+            } else {
+                long calculatedTs = timestamp + timestampDelta & 0xFFFFFFFFL;
+                timestamp31 = (int) (calculatedTs & 0x7FFFFFFFL);
 
-//            System.out.printf("%d: cs=%d ts=%d td=%d ml=%d mt=%d mi=%d\n", format, csId, calculatedTs, timestampDelta, messageLength, messageTypeId, messageStreamId);
+//                System.out.printf("%d: cs=%d ts=%d td=%d ml=%d mt=%d mi=%d\n", format, csId, calculatedTs, timestampDelta, messageLength, messageTypeId, messageStreamId);
 
-            this.previousTimestamp = calculatedTs;
-            this.previousDelta = timestampDelta;
-            this.previousMessageLength = messageLength;
-            this.previousMessageTypeId = messageTypeId;
-            this.previousMessageStreamId = messageStreamId;
+                this.previousTimestamp = calculatedTs;
+                this.previousDelta = timestampDelta;
+                this.previousMessageLength = messageLength;
+                this.previousMessageTypeId = messageTypeId;
+                this.previousMessageStreamId = messageStreamId;
+            }
 
             // 2 is the abort message, we need to parse that FULLY even if the stream is in
             // the middle of a chunk.
