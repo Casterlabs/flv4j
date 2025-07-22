@@ -128,19 +128,14 @@ public record FLVExAudioTagData(
 
         for (FLVExAudioTrack track : this.tracks) {
             if (this.rawMultitrackType != -1) {
-                int headerSize = 0;
-
                 if (this.rawMultitrackType == FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
                     writer.u32(track.codec().bits());
-                    headerSize += 4;
                 }
 
                 writer.u8(track.id());
-                headerSize++;
 
                 if (this.rawMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
-                    headerSize += 3;
-                    writer.u24(track.data().size() + headerSize);
+                    writer.u24(track.data().size());
                 }
             }
             track.data().serialize(writer);
@@ -179,21 +174,16 @@ public record FLVExAudioTagData(
             if (rawAudioMultitrackType == -1) {
                 trackDataSize = length - reader.bytesRead();
             } else {
-                int headerSize = 0;
-
                 if (rawAudioMultitrackType == FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
                     codec = FourCC.parse(reader);
-                    headerSize += 4;
                 }
 
                 audioTrackId = reader.u8();
-                headerSize++;
 
-                if (rawAudioMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
-                    trackDataSize = reader.u24();
-                    trackDataSize -= headerSize;
-                } else {
+                if (rawAudioMultitrackType == FLVExAudioMultitrackType.ONE_TRACK.id) {
                     trackDataSize = length - reader.bytesRead();
+                } else {
+                    trackDataSize = reader.u24();
                 }
             }
 
@@ -207,8 +197,9 @@ public record FLVExAudioTagData(
     @Override
     public final String toString() {
         return String.format(
-            "FLVExAudioTagData[format=%s (%d), isSequenceHeader=%b, modifiers=%s, tracks=%s]",
+            "FLVExAudioTagData[format=%s (%d), multitrack=%s (%d), isSequenceHeader=%b, modifiers=%s, tracks=%s]",
             this.type(), this.rawType,
+            this.rawMultitrackType == -1 ? "<single track>" : FLVExAudioMultitrackType.LUT[this.rawMultitrackType], this.rawMultitrackType,
             this.isSequenceHeader(),
             this.modifiers,
             this.tracks
