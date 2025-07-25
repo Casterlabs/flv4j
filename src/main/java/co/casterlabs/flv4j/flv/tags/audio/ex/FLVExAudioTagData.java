@@ -197,7 +197,7 @@ public record FLVExAudioTagData(
     @Override
     public final String toString() {
         return String.format(
-            "FLVExAudioTagData[format=%s (%d), multitrack=%s (%d), isSequenceHeader=%b, modifiers=%s, tracks=%s]",
+            "FLVExAudioTagData[type=%s (%d), multitrack=%s (%d), isSequenceHeader=%b, modifiers=%s, tracks=%s]",
             this.type(), this.rawType,
             this.rawMultitrackType == -1 ? "<single track>" : FLVExAudioMultitrackType.LUT[this.rawMultitrackType], this.rawMultitrackType,
             this.isSequenceHeader(),
