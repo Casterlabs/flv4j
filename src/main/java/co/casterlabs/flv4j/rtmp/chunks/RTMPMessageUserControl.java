@@ -34,9 +34,8 @@ public record RTMPMessageUserControl(RTMPControlMessage eventData) implements RT
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u16()
-            .bytes(this.eventData.size()).size;
+        return ASSizer.u16 // event type
+            + this.eventData.size();
     }
 
     @Override

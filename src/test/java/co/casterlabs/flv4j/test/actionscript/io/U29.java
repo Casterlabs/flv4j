@@ -29,7 +29,7 @@ public class U29 {
                 int read = reader.u29();
                 assertEquals(EXPECTED, read);
             }).length;
-            assertEquals(new ASSizer().u29(EXPECTED).size, byteLen);
+            assertEquals(ASSizer.u29(EXPECTED), byteLen);
         }
     }
 
@@ -43,7 +43,7 @@ public class U29 {
             assertEquals(EXPECTED, read);
         }).length;
         assertEquals(byteLen, LEN);
-        assertEquals(new ASSizer().u29(EXPECTED).size, LEN);
+        assertEquals(ASSizer.u29(EXPECTED), LEN);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class U29 {
             assertEquals(EXPECTED, read);
         }).length;
         assertEquals(byteLen, LEN);
-        assertEquals(new ASSizer().u29(EXPECTED).size, LEN);
+        assertEquals(ASSizer.u29(EXPECTED), LEN);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class U29 {
             assertEquals(EXPECTED, read);
         }).length;
         assertEquals(byteLen, LEN);
-        assertEquals(new ASSizer().u29(EXPECTED).size, LEN);
+        assertEquals(ASSizer.u29(EXPECTED), LEN);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class U29 {
             assertEquals(EXPECTED, read);
         }).length;
         assertEquals(byteLen, LEN);
-        assertEquals(new ASSizer().u29(EXPECTED).size, LEN);
+        assertEquals(ASSizer.u29(EXPECTED), LEN);
     }
 
     /* -------------------- */

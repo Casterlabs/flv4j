@@ -6,6 +6,7 @@ import java.util.Map;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
+import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=8
@@ -37,9 +38,9 @@ public record TypedObject0(
 
     @Override
     public int size() {
-        return _ObjectUtils.computeMapSize(this.map)
-            .u8()
-            .utf8(this.className).size;
+        return ASSizer.u8 // type marker
+            + ASSizer.utf8(this.className)
+            + _ObjectUtils.computeMapSize(this.map);
     }
 
     @Override

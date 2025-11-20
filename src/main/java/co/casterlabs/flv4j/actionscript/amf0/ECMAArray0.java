@@ -6,6 +6,7 @@ import java.util.Map;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
+import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6
@@ -31,9 +32,9 @@ public record ECMAArray0(
 
     @Override
     public int size() {
-        return _ObjectUtils.computeMapSize(this.map)
-            .u8()
-            .u32().size;
+        return ASSizer.u8 // type marker
+            + ASSizer.u32 // size hint
+            + _ObjectUtils.computeMapSize(this.map);
     }
 
     @Override

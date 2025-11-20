@@ -33,13 +33,12 @@ public record FLVTag(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u8()
-            .u24()
-            .u24()
-            .u8()
-            .u24()
-            .bytes(this.data.size()).size;
+        return ASSizer.u8 // type
+            + ASSizer.u24 // data length
+            + ASSizer.u24 // timestamp
+            + ASSizer.u8  // timestamp extended
+            + ASSizer.u24 // stream id
+            + this.data.size();
     }
 
     @Override

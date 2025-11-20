@@ -8,8 +8,6 @@ import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 public record FourCC(long bits, String string) implements FLVSerializable {
-    private static final int SIZE = new ASSizer().u32().size;
-
     public FourCC(long bits, String string) {
         ASAssert.u32(bits, "bits");
         assert string.length() == 4 : "Invalid FourCC length: " + string.length();
@@ -27,7 +25,7 @@ public record FourCC(long bits, String string) implements FLVSerializable {
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32;
     }
 
     @Override

@@ -34,9 +34,8 @@ public record FLVExAudioModifier(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u8()
-            .bytes(this.data.length).size;
+        return ASSizer.u8 // modExType/modRawAudioPacketType
+            + this.data.length;
     }
 
     @Override

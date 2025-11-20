@@ -17,7 +17,6 @@ import lombok.AllArgsConstructor;
  * different from the last one sent to the sender of this message.
  */
 public record RTMPMessageSetPeerBandwidth(long windowSize, int rawLimitType) implements RTMPMessage {
-    private static final int SIZE = new ASSizer().u32().u8().size;
 
     @Override
     public boolean isControl() {
@@ -35,7 +34,8 @@ public record RTMPMessageSetPeerBandwidth(long windowSize, int rawLimitType) imp
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32 // windowSize
+            + ASSizer.u8;  // rawLimitType
     }
 
     @Override

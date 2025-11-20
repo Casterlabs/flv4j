@@ -56,9 +56,8 @@ public record FLVVideoPayload(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u8()
-            .bytes(this.data.size()).size;
+        return ASSizer.u8 // frameType/codec
+            + this.data.size();
     }
 
     @Override

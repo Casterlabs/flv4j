@@ -47,19 +47,18 @@ class _ObjectUtils {
         return Collections.unmodifiableMap(map);
     }
 
-    static ASSizer computeMapSize(Map<String, AMF0Type> map) {
-        ASSizer sizer = new ASSizer();
+    static int computeMapSize(Map<String, AMF0Type> map) {
+        int size = 0;
 
         for (Entry<String, AMF0Type> entry : map.entrySet()) {
-            sizer.utf8(entry.getKey());
-            sizer.size += entry.getValue().size();
+            size += ASSizer.utf8(entry.getKey());
+            size += entry.getValue().size();
         }
 
-        sizer
-            .utf8empty() // 0 key length (for the end tag)
-            .u8();
+        size += ASSizer.utf8empty; // 0 key length (for the end tag)
+        size += ASSizer.u8; // OBJECT_END marker
 
-        return sizer;
+        return size;
     }
 
     static void serializeMap(ASWriter writer, Map<String, AMF0Type> map) throws IOException {

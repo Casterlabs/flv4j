@@ -25,10 +25,9 @@ public record AVCVideoData(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u8()
-            .u24()
-            .bytes(this.data.length).size;
+        return ASSizer.u8 // rawType
+            + ASSizer.u24 // compositionTimeOffset
+            + this.data.length;
     }
 
     @Override

@@ -22,7 +22,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record Reference0(
     int index
 ) implements AMF0Type {
-    private static final int SIZE = new ASSizer().u8().u16().size;
 
     public Reference0(int index) {
         ASAssert.u16(index, "index");
@@ -36,7 +35,8 @@ public record Reference0(
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u8  // type marker
+            + ASSizer.u16; // index
     }
 
     @Override

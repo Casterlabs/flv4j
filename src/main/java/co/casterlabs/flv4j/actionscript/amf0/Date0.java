@@ -10,7 +10,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record Date0(
     double value
 ) implements AMF0Type {
-    private static final int SIZE = new ASSizer().u8().u16().dbl().size;
 
     @Override
     public Type type() {
@@ -19,7 +18,9 @@ public record Date0(
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u8  // type marker
+            + ASSizer.u16  // timezone
+            + ASSizer.dbl; // date value
     }
 
     @Override

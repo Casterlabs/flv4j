@@ -11,11 +11,10 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record RTMPHandshake0(
     int version
 ) implements FLVSerializable {
-    private static final int SIZE = new ASSizer().u8().size;
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u8; // version
     }
 
     @Override

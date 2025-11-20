@@ -15,7 +15,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
  * further processing of the messages is not required.
  */
 public record RTMPMessageAbort(long streamId) implements RTMPMessage {
-    private static final int SIZE = new ASSizer().u32().size;
 
     @Override
     public boolean isControl() {
@@ -29,7 +28,7 @@ public record RTMPMessageAbort(long streamId) implements RTMPMessage {
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32; // streamId
     }
 
     @Override

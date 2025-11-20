@@ -17,7 +17,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
  * sent.
  */
 public record RTMPMessageWindowAcknowledgementSize(long windowSize) implements RTMPMessage {
-    private static final int SIZE = new ASSizer().u32().size;
 
     @Override
     public boolean isControl() {
@@ -31,7 +30,7 @@ public record RTMPMessageWindowAcknowledgementSize(long windowSize) implements R
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32; // windowSize
     }
 
     @Override

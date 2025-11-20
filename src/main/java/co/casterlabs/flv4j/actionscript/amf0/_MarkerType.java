@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 
 // Marker types do not contain any data.
 abstract class _MarkerType implements AMF0Type {
-    private static final int SIZE = new ASSizer().u8().size;
 
     static _Parser parser(AMF0Type type) {
         return new StaticParser(type);
@@ -17,7 +16,7 @@ abstract class _MarkerType implements AMF0Type {
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u8;
     }
 
     @Override

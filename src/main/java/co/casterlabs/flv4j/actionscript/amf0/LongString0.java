@@ -26,9 +26,8 @@ public record LongString0(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u8()
-            .utf8long(this.value).size;
+        return ASSizer.u8 // type marker
+            + ASSizer.utf8long(this.value);
     }
 
     @Override

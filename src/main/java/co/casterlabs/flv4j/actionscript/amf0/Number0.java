@@ -10,7 +10,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
 public record Number0(
     double value
 ) implements AMF0Type {
-    private static final int SIZE = new ASSizer().u8().dbl().size;
 
     @Override
     public Type type() {
@@ -19,7 +18,8 @@ public record Number0(
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u8  // type marker
+            + ASSizer.dbl; // double value
     }
 
     @Override

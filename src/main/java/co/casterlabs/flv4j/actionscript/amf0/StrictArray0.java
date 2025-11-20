@@ -31,13 +31,12 @@ public record StrictArray0(
 
     @Override
     public int size() {
-        ASSizer sizer = new ASSizer()
-            .u8()
-            .u32();
+        int size = ASSizer.u8 // type marker
+            + ASSizer.u32;    // array length
         for (AMF0Type value : this.array) {
-            sizer.size += value.size();
+            size += value.size();
         }
-        return sizer.size;
+        return size;
     }
 
     @Override

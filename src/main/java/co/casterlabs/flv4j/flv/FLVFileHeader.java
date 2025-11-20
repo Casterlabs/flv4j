@@ -38,12 +38,11 @@ public record FLVFileHeader(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .bytes(MAGIC.length)
-            .u8()
-            .u8()
-            .u32()
-            .bytes(this.expandedHeaderData.length).size;
+        return MAGIC.length
+            + ASSizer.u8  // version
+            + ASSizer.u8  // flags
+            + ASSizer.u32 // header size
+            + this.expandedHeaderData.length;
     }
 
     @Override

@@ -26,9 +26,8 @@ public record String0(
 
     @Override
     public int size() {
-        return new ASSizer()
-            .u8()
-            .utf8(this.value).size;
+        return ASSizer.u8 // type marker
+            + ASSizer.utf8(this.value);
     }
 
     @Override

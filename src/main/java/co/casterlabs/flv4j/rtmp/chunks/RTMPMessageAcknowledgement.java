@@ -15,7 +15,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
  * sequence number, which is the number of the bytes received so far.
  */
 public record RTMPMessageAcknowledgement(long bytesReceived) implements RTMPMessage {
-    private static final int SIZE = new ASSizer().u32().size;
 
     @Override
     public boolean isControl() {
@@ -29,7 +28,7 @@ public record RTMPMessageAcknowledgement(long bytesReceived) implements RTMPMess
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32; // bytesReceived
     }
 
     @Override

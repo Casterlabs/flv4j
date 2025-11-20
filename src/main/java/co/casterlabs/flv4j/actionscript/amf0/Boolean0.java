@@ -13,8 +13,6 @@ public record Boolean0(
     public static final Boolean0 TRUE = new Boolean0(true);
     public static final Boolean0 FALSE = new Boolean0(false);
 
-    private static final int SIZE = new ASSizer().u8().u8().size;
-
     @Override
     public Type type() {
         return Type.BOOLEAN;
@@ -22,7 +20,8 @@ public record Boolean0(
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u8 // type marker
+            + ASSizer.u8; // value
     }
 
     @Override

@@ -51,48 +51,48 @@ public record FLVExAudioTagData(
 
     @Override
     public int size() {
-        ASSizer sizer = new ASSizer();
+        int size = 0;
 
         if (this.modifiers.isEmpty()) {
             if (this.rawMultitrackType == -1) {
-                sizer.u8();
+                size += ASSizer.u8;
             } else {
-                sizer.u8();
-                sizer.u8();
+                size += ASSizer.u8;
+                size += ASSizer.u8;
             }
         } else {
-            sizer.u8();
+            size += ASSizer.u8;
 
             for (FLVExAudioModifier mod : this.modifiers) {
-                sizer.bytes(mod.size());
+                size += mod.size();
             }
 
             if (this.rawMultitrackType != -1) {
-                sizer.u8();
+                size += ASSizer.u8;
             }
         }
 
         if (this.rawMultitrackType != FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
-            sizer.u32();
+            size += ASSizer.u32;
         }
 
         for (FLVExAudioTrack track : this.tracks) {
             if (this.rawMultitrackType != -1) {
                 if (this.rawMultitrackType == FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
-                    sizer.u32();
+                    size += ASSizer.u32;
                 }
 
-                sizer.u8();
+                size += ASSizer.u8;
 
                 if (this.rawMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
-                    sizer.u24();
+                    size += ASSizer.u24;
                 }
             }
 
-            sizer.bytes(track.data().size());
+            size += track.data().size();
         }
 
-        return sizer.size;
+        return size;
     }
 
     @Override

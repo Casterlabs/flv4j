@@ -13,11 +13,12 @@ public record RTMPHandshake1(
     byte[] random
 ) implements FLVSerializable {
     public static final int RANDOM_SIZE = 1528;
-    private static final int SIZE = new ASSizer().u32().u32().bytes(RANDOM_SIZE).size;
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32 // epoch
+            + ASSizer.u32  // zero
+            + RANDOM_SIZE;
     }
 
     @Override

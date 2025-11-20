@@ -20,7 +20,6 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
  *          each direction.
  */
 public record RTMPMessageChunkSize(int chunkSize) implements RTMPMessage {
-    private static final int SIZE = new ASSizer().u32().size;
 
     @Override
     public boolean isControl() {
@@ -34,7 +33,7 @@ public record RTMPMessageChunkSize(int chunkSize) implements RTMPMessage {
 
     @Override
     public int size() {
-        return SIZE;
+        return ASSizer.u32; // chunkSize
     }
 
     @Override
