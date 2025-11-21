@@ -1,7 +1,5 @@
 package co.casterlabs.flv4j.actionscript.io;
 
-import java.nio.charset.StandardCharsets;
-
 public class ASSizer {
 
     public static final int u8 = 1;
@@ -33,14 +31,12 @@ public class ASSizer {
         return 4;
     }
 
-    public static int utf8(String str) {
-        byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
-        return u16 + strBytes.length;
+    public static int utf8(ByteString str) {
+        return u16 + str.byteLength();
     }
 
-    public static int utf8long(String str) {
-        byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
-        return u32 + strBytes.length;
+    public static int utf8long(ByteString str) {
+        return u32 + str.byteLength();
     }
 
 }

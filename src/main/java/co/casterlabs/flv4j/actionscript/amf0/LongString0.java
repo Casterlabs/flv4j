@@ -7,16 +7,21 @@ import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
+import co.casterlabs.flv4j.actionscript.io.ByteString;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=7
 public record LongString0(
-    String value
+    ByteString value
 ) implements StringLike {
     public static final LongString0 EMPTY = new LongString0("");
 
-    public LongString0(String value) {
-        ASAssert.u32(value.length(), "string length");
+    public LongString0(ByteString value) {
+        ASAssert.u32(value.byteLength(), "string length");
         this.value = value;
+    }
+
+    public LongString0(String value) {
+        this(new ByteString(value));
     }
 
     @Override
@@ -38,13 +43,13 @@ public record LongString0(
 
     @Override
     public final String toString() {
-        return '"' + this.value + '"';
+        return '"' + this.value.string() + '"';
     }
 
     static LongString0 parse(ASReader reader) throws IOException {
         // marker is already consumed.
 
-        String str = reader.utf8long();
+        ByteString str = reader.utf8long();
         return new LongString0(str);
     }
 

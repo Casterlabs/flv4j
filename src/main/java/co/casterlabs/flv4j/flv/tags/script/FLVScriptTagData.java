@@ -21,7 +21,7 @@ public record FLVScriptTagData(
     }
 
     public String methodName() {
-        return this.method().value();
+        return this.method().value().string();
     }
 
     @Override

@@ -15,6 +15,7 @@ import co.casterlabs.flv4j.actionscript.amf0.Number0;
 import co.casterlabs.flv4j.actionscript.amf0.Object0;
 import co.casterlabs.flv4j.actionscript.amf0.StrictArray0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
+import co.casterlabs.flv4j.actionscript.io.ByteString;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -247,7 +248,7 @@ public class ConnectArgs {
                 legacyFourCcList.add(new String0(codec));
                 videoFourCcMap.put(codec, new Number0(mask));
             }
-            map.put("videoFourCcInfoMap", new Object0(videoFourCcMap));
+            map.put("videoFourCcInfoMap", Object0.of(videoFourCcMap));
         }
 
         if (!this.audioFourCcInfoMap.isEmpty()) {
@@ -260,14 +261,14 @@ public class ConnectArgs {
                 legacyFourCcList.add(new String0(codec));
                 audioFourCcMap.put(codec, new Number0(mask));
             }
-            map.put("audioFourCcInfoMap", new Object0(audioFourCcMap));
+            map.put("audioFourCcInfoMap", Object0.of(audioFourCcMap));
         }
 
         if (!legacyFourCcList.isEmpty()) {
             map.put("fourCcList", new StrictArray0(legacyFourCcList.toArray(new String0[0])));
         }
 
-        return new Object0(map);
+        return Object0.of(map);
     }
 
     public AMF0Type[] toAMF0() {
@@ -278,7 +279,7 @@ public class ConnectArgs {
     }
 
     public static ConnectArgs from(AMF0Type... args) {
-        Map<String, AMF0Type> map = objMap(args[0]);
+        Map<String, AMF0Type> map = ObjectLike.toRegular(objMap(args[0]));
 
         AMF0Type[] optional = {};
         if (args.length > 1) {
@@ -293,12 +294,12 @@ public class ConnectArgs {
         args.optionalArgs = optional;
         args.additionalParams = map;
 
-        if (map.containsKey("app")) args.app = ((StringLike) map.get("app")).value();
-        if (map.containsKey("type")) args.type = ((StringLike) map.get("type")).value();
-        if (map.containsKey("flashVer")) args.flashVersion = ((StringLike) map.get("flashVer")).value();
-        if (map.containsKey("swfUrl")) args.swfUrl = ((StringLike) map.get("swfUrl")).value();
-        if (map.containsKey("tcUrl")) args.tcUrl = ((StringLike) map.get("tcUrl")).value();
-        if (map.containsKey("pageUrl")) args.pageUrl = ((StringLike) map.get("pageUrl")).value();
+        if (map.containsKey("app")) args.app = ((StringLike) map.get("app")).value().string();
+        if (map.containsKey("type")) args.type = ((StringLike) map.get("type")).value().string();
+        if (map.containsKey("flashVer")) args.flashVersion = ((StringLike) map.get("flashVer")).value().string();
+        if (map.containsKey("swfUrl")) args.swfUrl = ((StringLike) map.get("swfUrl")).value().string();
+        if (map.containsKey("tcUrl")) args.tcUrl = ((StringLike) map.get("tcUrl")).value().string();
+        if (map.containsKey("pageUrl")) args.pageUrl = ((StringLike) map.get("pageUrl")).value().string();
 
         if (map.containsKey("audioCodecs")) args.audioCodecs = (int) ((Number0) map.get("audioCodecs")).value();
         if (map.containsKey("videoCodecs")) args.videoCodecs = (int) ((Number0) map.get("videoCodecs")).value();
@@ -311,12 +312,12 @@ public class ConnectArgs {
             AMF0Type[] legacyFourCcList = ((StrictArray0) map.get("fourCcList")).array();
             args.legacyFourCcList = new String[legacyFourCcList.length];
             for (int i = 0; i < legacyFourCcList.length; i++) {
-                args.legacyFourCcList[i] = ((StringLike) legacyFourCcList[i]).value();
+                args.legacyFourCcList[i] = ((StringLike) legacyFourCcList[i]).value().string();
             }
         }
 
         if (map.containsKey("videoFourCcInfoMap")) {
-            Map<String, AMF0Type> videoFourCcMap = objMap(map.get("videoFourCcInfoMap"));
+            Map<String, AMF0Type> videoFourCcMap = ObjectLike.toRegular(objMap(map.get("videoFourCcInfoMap")));
 
             for (Map.Entry<String, AMF0Type> entry : videoFourCcMap.entrySet()) {
                 args.videoFourCcInfoMap.put(entry.getKey(), (int) ((Number0) entry.getValue()).value());
@@ -324,7 +325,7 @@ public class ConnectArgs {
         }
 
         if (map.containsKey("audioFourCcInfoMap")) {
-            Map<String, AMF0Type> audioFourCcMap = objMap(map.get("audioFourCcInfoMap"));
+            Map<String, AMF0Type> audioFourCcMap = ObjectLike.toRegular(objMap(map.get("audioFourCcInfoMap")));
 
             for (Map.Entry<String, AMF0Type> entry : audioFourCcMap.entrySet()) {
                 args.audioFourCcInfoMap.put(entry.getKey(), (int) ((Number0) entry.getValue()).value());
@@ -334,7 +335,7 @@ public class ConnectArgs {
         return args;
     }
 
-    private static Map<String, AMF0Type> objMap(AMF0Type type) {
+    private static Map<ByteString, AMF0Type> objMap(AMF0Type type) {
         if (type instanceof ObjectLike obj) {
             return obj.map();
         } else {

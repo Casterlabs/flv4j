@@ -7,24 +7,26 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
+import co.casterlabs.flv4j.actionscript.io.ByteString;
+
 public class UTF8 {
 
     @Test
     public void utf8() throws IOException {
-        final String EXPECTED = stroflen(123);
+        final ByteString EXPECTED = stroflen(123);
         _Helper.rw((writer, reader) -> {
             writer.utf8(EXPECTED);
-            String read = reader.utf8();
+            ByteString read = reader.utf8();
             assertEquals(EXPECTED, read);
         });
     }
 
     @Test
     public void utf8long() throws IOException {
-        final String EXPECTED = stroflen(0xFFFF + 1); // >u16 limit.
+        final ByteString EXPECTED = stroflen(0xFFFF + 1); // >u16 limit.
         _Helper.rw((writer, reader) -> {
             writer.utf8long(EXPECTED);
-            String read = reader.utf8long();
+            ByteString read = reader.utf8long();
             assertEquals(EXPECTED, read);
         });
     }
@@ -33,15 +35,15 @@ public class UTF8 {
     public void utf8empty() throws IOException {
         _Helper.rw((writer, reader) -> {
             writer.utf8empty();
-            String read = reader.utf8();
-            assertEquals("", read);
+            ByteString read = reader.utf8();
+            assertEquals(new ByteString(""), read);
         });
     }
 
-    private static String stroflen(int len) {
+    private static ByteString stroflen(int len) {
         char[] str = new char[len];
         Arrays.fill(str, 'a');
-        return new String(str);
+        return new ByteString(new String(str));
     }
 
 }

@@ -2,7 +2,6 @@ package co.casterlabs.flv4j.actionscript.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=2
 public record ASWriter(
@@ -100,16 +99,14 @@ public record ASWriter(
         u8((int) (bits >> 0 & 0xFF));
     }
 
-    public void utf8(String str) throws IOException {
-        byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
-        u16(strBytes.length);
-        out.write(strBytes);
+    public void utf8(ByteString str) throws IOException {
+        u16(str.byteLength());
+        out.write(str.bytes());
     }
 
-    public void utf8long(String str) throws IOException {
-        byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
-        u32(strBytes.length);
-        out.write(strBytes);
+    public void utf8long(ByteString str) throws IOException {
+        u32(str.byteLength());
+        out.write(str.bytes());
     }
 
     public void utf8empty() throws IOException {

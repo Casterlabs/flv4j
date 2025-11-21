@@ -2,22 +2,37 @@ package co.casterlabs.flv4j.actionscript.amf0;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
+import co.casterlabs.flv4j.actionscript.io.ByteString;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6
 public record ECMAArray0(
-    Map<String, AMF0Type> map
+    Map<ByteString, AMF0Type> map
 ) implements ObjectLike {
     public static final ECMAArray0 EMPTY = new ECMAArray0(Map.of());
 
-    public ECMAArray0(Map<String, AMF0Type> map) {
+    public ECMAArray0(Map<ByteString, AMF0Type> map) {
         ASAssert.u32(map.size(), "map size");
         this.map = map;
+    }
+
+    public static ECMAArray0 of(Map<String, AMF0Type> map) {
+        return new ECMAArray0(
+            map.entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        e -> new ByteString(e.getKey()),
+                        Map.Entry::getValue
+                    )
+                )
+        );
     }
 
     @Override
@@ -53,7 +68,7 @@ public record ECMAArray0(
         // marker is already consumed.
         reader.u32(); // We don't care about the size hint, it's a suggestion.
 
-        Map<String, AMF0Type> map = _ObjectUtils.parseMap(reader);
+        Map<ByteString, AMF0Type> map = _ObjectUtils.parseMap(reader);
         return new ECMAArray0(map);
     }
 

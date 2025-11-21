@@ -10,16 +10,17 @@ import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.Type;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
+import co.casterlabs.flv4j.actionscript.io.ByteString;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=5
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6
 // This class is used for both Objects and ECMA Arrays.
 class _ObjectUtils {
 
-    static Map<String, AMF0Type> parseMap(ASReader reader) throws IOException {
-        Map<String, AMF0Type> map = new LinkedHashMap<>();
+    static Map<ByteString, AMF0Type> parseMap(ASReader reader) throws IOException {
+        Map<ByteString, AMF0Type> map = new LinkedHashMap<>();
 
-        String key = null;
+        ByteString key = null;
         while (true) {
             if (key == null) {
                 String0 keyData = String0.parse(reader); // Type is implicit, which means no marker.
@@ -30,7 +31,7 @@ class _ObjectUtils {
 
             AMF0Type value = AMF0Type.parse(reader);
             if (value.type() == Type.OBJECT_END) {
-                if (key.length() > 0) {
+                if (key.byteLength() > 0) {
                     throw new IllegalArgumentException("OBJECT_END must be preceeded by an empty key!");
                 }
 
@@ -47,10 +48,10 @@ class _ObjectUtils {
         return Collections.unmodifiableMap(map);
     }
 
-    static int computeMapSize(Map<String, AMF0Type> map) {
+    static int computeMapSize(Map<ByteString, AMF0Type> map) {
         int size = 0;
 
-        for (Entry<String, AMF0Type> entry : map.entrySet()) {
+        for (Entry<ByteString, AMF0Type> entry : map.entrySet()) {
             size += ASSizer.utf8(entry.getKey());
             size += entry.getValue().size();
         }
@@ -61,9 +62,9 @@ class _ObjectUtils {
         return size;
     }
 
-    static void serializeMap(ASWriter writer, Map<String, AMF0Type> map) throws IOException {
-        for (Entry<String, AMF0Type> entry : map.entrySet()) {
-            String key = entry.getKey();
+    static void serializeMap(ASWriter writer, Map<ByteString, AMF0Type> map) throws IOException {
+        for (Entry<ByteString, AMF0Type> entry : map.entrySet()) {
+            ByteString key = entry.getKey();
             AMF0Type value = entry.getValue();
 
             writer.utf8(key);

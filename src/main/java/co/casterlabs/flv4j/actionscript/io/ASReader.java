@@ -3,7 +3,6 @@ package co.casterlabs.flv4j.actionscript.io;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 import co.casterlabs.commons.io.streams.LimitedInputStream;
 import co.casterlabs.flv4j.EndOfStreamException;
@@ -112,16 +111,16 @@ public class ASReader {
         return Double.longBitsToDouble(bits);
     }
 
-    public String utf8() throws IOException {
+    public ByteString utf8() throws IOException {
         int len = u16();
         byte[] bytes = bytes(len);
-        return new String(bytes, StandardCharsets.UTF_8);
+        return new ByteString(bytes);
     }
 
-    public String utf8long() throws IOException {
+    public ByteString utf8long() throws IOException {
         int len = (int) u32();
         byte[] bytes = bytes(len);
-        return new String(bytes, StandardCharsets.UTF_8);
+        return new ByteString(bytes);
     }
 
     public ASReader limited(int len) {

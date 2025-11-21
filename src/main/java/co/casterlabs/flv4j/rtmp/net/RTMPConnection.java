@@ -103,7 +103,7 @@ public class RTMPConnection {
 
         try {
             // We handle these specially for RPC calls :^)
-            switch (command.commandName().value()) {
+            switch (command.commandName().value().string()) {
                 case "_result": {
                     Handle<AMF0Type[]> future = this.rpcFutures.remove((int) command.transactionId().value());
                     if (future == null) return;
@@ -126,7 +126,7 @@ public class RTMPConnection {
 
             AMF0Type[] response = null;
             if (this.onCall != null) {
-                response = this.onCall.onCall(msId, command.commandName().value(), args);
+                response = this.onCall.onCall(msId, command.commandName().value().string(), args);
             }
 
             if (command.transactionId().value() == 0) return; // void.
@@ -174,7 +174,7 @@ public class RTMPConnection {
     private static NetStatus findStatus(AMF0Type[] args) {
         for (AMF0Type arg : args) {
             if (arg instanceof ObjectLike obj) {
-                if (obj.map().containsKey("code")) {
+                if (obj.map().containsKey(NetStatus.STR_CODE)) {
                     return new NetStatus(obj);
                 }
             }

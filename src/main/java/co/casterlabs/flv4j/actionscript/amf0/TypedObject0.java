@@ -8,18 +8,19 @@ import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
+import co.casterlabs.flv4j.actionscript.io.ByteString;
 
 // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=8
 public record TypedObject0(
-    String className,
-    Map<String, AMF0Type> map
+    ByteString className,
+    Map<ByteString, AMF0Type> map
 ) implements ObjectLike {
 
-    public TypedObject0(String className) {
+    public TypedObject0(ByteString className) {
         this(className, Collections.emptyMap());
     }
 
-    public TypedObject0(String className, Map<String, AMF0Type> map) {
+    public TypedObject0(ByteString className, Map<ByteString, AMF0Type> map) {
         assert className != null : "className cannot be null";
         assert map != null : "map cannot be null";
         this.className = className;
@@ -58,8 +59,8 @@ public record TypedObject0(
     static TypedObject0 parse(ASReader reader) throws IOException {
         // marker is already consumed.
 
-        String className = reader.utf8();
-        Map<String, AMF0Type> map = _ObjectUtils.parseMap(reader);
+        ByteString className = reader.utf8();
+        Map<ByteString, AMF0Type> map = _ObjectUtils.parseMap(reader);
 
         return new TypedObject0(className, map);
     }

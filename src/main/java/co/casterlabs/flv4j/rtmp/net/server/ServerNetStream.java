@@ -43,7 +43,7 @@ public abstract class ServerNetStream extends NetStream {
             }
 
             case "play": {
-                String name = ((String0) args[1]).value();
+                String name = ((String0) args[1]).value().string();
 
                 double start = -2; // default value per spec
                 if (args.length > 2) {
@@ -79,8 +79,8 @@ public abstract class ServerNetStream extends NetStream {
             }
 
             case "publish": {
-                String name = ((String0) args[1]).value();
-                String type = ((String0) args[2]).value();
+                String name = ((String0) args[1]).value().string();
+                String type = ((String0) args[2]).value().string();
 
                 this.publish(name, type);
                 return null;

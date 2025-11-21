@@ -6,6 +6,7 @@ import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.ObjectLike;
 import co.casterlabs.flv4j.actionscript.amf0.AMF0Type.StringLike;
 import co.casterlabs.flv4j.actionscript.amf0.Object0;
 import co.casterlabs.flv4j.actionscript.amf0.String0;
+import co.casterlabs.flv4j.actionscript.io.ByteString;
 import lombok.NonNull;
 
 //https://veovera.org/docs/enhanced/enhanced-rtmp-v2.pdf#page=20
@@ -41,15 +42,17 @@ public record NetStatus(
     public static final NetStatus NS_UNPUBLISH_SUCCESS         = new NetStatus("NetStream.Unpublish.Success",            "status", "Stream stopped.");
     // @formatter:on
 
-    private static final String0 EMPTY_STR = new String0("");
+    static final ByteString STR_CODE = new ByteString("code");
+    static final ByteString STR_LEVEL = new ByteString("level");
+    static final ByteString STR_DESCRIPTION = new ByteString("description");
 
     public NetStatus(@NonNull String code, @NonNull String level, @NonNull String description) {
         this(
             code, level, description, new Object0(
                 Map.of(
-                    "code", new String0(code),
-                    "level", new String0(level),
-                    "description", new String0(description)
+                    STR_CODE, new String0(code),
+                    STR_LEVEL, new String0(level),
+                    STR_DESCRIPTION, new String0(description)
                 )
             )
         );
@@ -57,9 +60,9 @@ public record NetStatus(
 
     public NetStatus(ObjectLike obj) {
         this(
-            ((StringLike) obj.map().getOrDefault("code", EMPTY_STR)).value(),
-            ((StringLike) obj.map().getOrDefault("level", EMPTY_STR)).value(),
-            ((StringLike) obj.map().getOrDefault("description", EMPTY_STR)).value(),
+            ((StringLike) obj.map().getOrDefault(STR_CODE, String0.EMPTY)).value().string(),
+            ((StringLike) obj.map().getOrDefault(STR_LEVEL, String0.EMPTY)).value().string(),
+            ((StringLike) obj.map().getOrDefault(STR_DESCRIPTION, String0.EMPTY)).value().string(),
             obj instanceof Object0 ? (Object0) obj : new Object0(obj.map())
         );
     }
