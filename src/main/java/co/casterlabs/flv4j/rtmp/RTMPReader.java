@@ -244,7 +244,7 @@ public class RTMPReader {
                     }
                 }
 
-                message = RTMPMessage.parse(messageTypeId, this.inProgressBuffer.length, new ASReader(this.inProgressBuffer));
+                message = RTMPMessage.parse(messageTypeId, this.inProgressBuffer.length, ASReader.from(this.inProgressBuffer));
                 this.inProgressBuffer = null;
             } else {
                 message = RTMPMessage.parse(messageTypeId, messageLength, reader);

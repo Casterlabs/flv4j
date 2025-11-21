@@ -15,7 +15,7 @@ class _Helper {
     private static final LateInputStream rwReaderSrc = new LateInputStream();
 
     private static final ASWriter rwWriter = new ASWriter(reWriterDest);
-    private static final ASReader rwReader = new ASReader(rwReaderSrc);
+    private static final ASReader rwReader = ASReader.from(rwReaderSrc);
 
     static {
         ASAssert.class.getClassLoader().setPackageAssertionStatus("co.casterlabs.flv4j", true);

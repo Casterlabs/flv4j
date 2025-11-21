@@ -40,7 +40,7 @@ public class FLVTypes {
     private static <T extends FLVSerializable> void assertReparse(T src, Parser<T> parser) throws IOException {
         byte[] srcBytes = src.raw();
 
-        T reconstructed = parser.parse(new ASReader(srcBytes, 0, srcBytes.length));
+        T reconstructed = parser.parse(ASReader.from(srcBytes, 0, srcBytes.length));
         byte[] reconstructedBytes = reconstructed.raw();
 
         assertArrayEquals(srcBytes, reconstructedBytes, "Couldn't reparse: " + src.getClass().getSimpleName());

@@ -37,7 +37,7 @@ public interface AMF0Type extends FLVSerializable {
     @SuppressWarnings("unchecked")
     public static <T extends AMF0Type> T parse(byte[] b, int off) throws IOException {
         int len = b.length - off;
-        return (T) parse(new ASReader(b, off, len));
+        return (T) parse(ASReader.from(b, off, len));
     }
 
     @SuppressWarnings("unchecked")

@@ -16,7 +16,7 @@ public abstract class NonSeekableFLVDemuxer {
     private @Getter long bytesRead = 0;
 
     public final void start(@NonNull InputStream in) throws IOException {
-        this.start(new ASReader(in));
+        this.start(ASReader.from(in));
     }
 
     public final void start(@NonNull ASReader reader) throws IOException {
