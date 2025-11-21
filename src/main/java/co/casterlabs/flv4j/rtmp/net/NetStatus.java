@@ -20,6 +20,10 @@ public record NetStatus(
     Object0 asObject
 ) {
 
+    static final ByteString STR_CODE = new ByteString("code");
+    static final ByteString STR_LEVEL = new ByteString("level");
+    static final ByteString STR_DESCRIPTION = new ByteString("description");
+
     // @formatter:off
     public static final NetStatus NC_CONNECT_APP_SHUTDOWN      = new NetStatus("NetConnection.Connect.AppShutdown",      "error",  "Server going away.");
     public static final NetStatus NC_CONNECT_CLOSED            = new NetStatus("NetConnection.Connect.Closed",           "status", "Connection closed.");
@@ -41,10 +45,6 @@ public record NetStatus(
 
     public static final NetStatus NS_UNPUBLISH_SUCCESS         = new NetStatus("NetStream.Unpublish.Success",            "status", "Stream stopped.");
     // @formatter:on
-
-    static final ByteString STR_CODE = new ByteString("code");
-    static final ByteString STR_LEVEL = new ByteString("level");
-    static final ByteString STR_DESCRIPTION = new ByteString("description");
 
     public NetStatus(@NonNull String code, @NonNull String level, @NonNull String description) {
         this(
