@@ -6,4 +6,6 @@ public interface FLVTagData extends FLVSerializable {
 
     public boolean isSequenceHeader();
 
+    public boolean isEx();
+
 }

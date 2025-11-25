@@ -8,6 +8,10 @@ public record ASWriter(
     OutputStream out
 ) {
 
+    public void bytes(ASByteView view) throws IOException {
+        this.bytes(view.buffer(), view.offset(), view.length());
+    }
+
     public void bytes(byte[] b) throws IOException {
         out.write(b);
     }

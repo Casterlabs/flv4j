@@ -26,7 +26,12 @@ public record FLVScriptTagData(
 
     @Override
     public boolean isSequenceHeader() {
-        return true; // ?
+        return true;
+    }
+
+    @Override
+    public boolean isEx() {
+        return false;
     }
 
     @Override

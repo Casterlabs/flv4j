@@ -9,7 +9,7 @@ import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.flv.tags.audio.FLVAudioTagData;
 import co.casterlabs.flv4j.flv.tags.script.FLVScriptTagData;
-import co.casterlabs.flv4j.flv.tags.video.FLVVideoPayload;
+import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=newer%20expanded%20header-,Packets,-%5Bedit%5D
 //https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf
@@ -66,7 +66,7 @@ public record FLVTag(
 
         FLVTagData data = switch (packetType) {
             case 8 -> FLVAudioTagData.parse(reader.limited(dataLen), dataLen);
-            case 9 -> FLVVideoPayload.parse(reader.limited(dataLen), dataLen);
+            case 9 -> FLVVideoTagData.parse(reader.limited(dataLen), dataLen);
             case 18 -> FLVScriptTagData.parse(reader.limited(dataLen));
             default -> new FLVTagHeaderUnknown(reader.bytes(dataLen));
         };

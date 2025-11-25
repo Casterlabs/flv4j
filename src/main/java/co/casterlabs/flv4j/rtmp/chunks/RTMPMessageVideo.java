@@ -4,10 +4,10 @@ import java.io.IOException;
 
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
-import co.casterlabs.flv4j.flv.tags.video.FLVVideoPayload;
+import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 
 // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=26
-public record RTMPMessageVideo(FLVVideoPayload payload) implements RTMPMessage {
+public record RTMPMessageVideo(FLVVideoTagData payload) implements RTMPMessage {
 
     @Override
     public int rawType() {
@@ -25,7 +25,7 @@ public record RTMPMessageVideo(FLVVideoPayload payload) implements RTMPMessage {
     }
 
     public static RTMPMessageVideo parse(ASReader reader, int length) throws IOException {
-        FLVVideoPayload payload = FLVVideoPayload.parse(reader, length);
+        FLVVideoTagData payload = FLVVideoTagData.parse(reader, length);
         return new RTMPMessageVideo(payload);
     }
 

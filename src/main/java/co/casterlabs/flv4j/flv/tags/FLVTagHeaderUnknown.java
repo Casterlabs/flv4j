@@ -18,6 +18,11 @@ public record FLVTagHeaderUnknown(
     }
 
     @Override
+    public boolean isEx() {
+        return false;
+    }
+
+    @Override
     public final String toString() {
         return String.format(
             "FLVUnknownPayload[isSequenceHeader=?, size=%d]",
