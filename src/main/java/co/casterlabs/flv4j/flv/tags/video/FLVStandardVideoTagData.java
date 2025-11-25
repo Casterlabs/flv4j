@@ -1,14 +1,15 @@
 package co.casterlabs.flv4j.flv.tags.video;
 
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
-import co.casterlabs.flv4j.flv.tags.video.avc.AVCVideoData;
+import co.casterlabs.flv4j.codecs.VideoCodecData;
+import co.casterlabs.flv4j.codecs.video.avc1.AVCVideoData;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-video
 public record FLVStandardVideoTagData(
     ASByteView view,
-    VideoData data
+    VideoCodecData data
 ) implements FLVVideoTagData {
 
     public FLVStandardVideoTagData(ASByteView view) {
@@ -16,7 +17,7 @@ public record FLVStandardVideoTagData(
             view,
             switch (FLVVideoCodec.LUT[view.u8(0) & 0b1111]) {
                 case H264 -> new AVCVideoData(view.slice(1));
-                default -> new RawVideoData();
+                default -> new VideoCodecData.Invalid(view.slice(1));
             }
         );
     }

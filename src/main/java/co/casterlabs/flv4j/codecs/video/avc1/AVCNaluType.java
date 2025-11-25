@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.flv.tags.video.avc;
+package co.casterlabs.flv4j.codecs.video.avc1;
 
 import lombok.AllArgsConstructor;
 

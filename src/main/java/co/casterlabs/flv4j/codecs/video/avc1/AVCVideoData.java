@@ -1,14 +1,14 @@
-package co.casterlabs.flv4j.flv.tags.video.avc;
+package co.casterlabs.flv4j.codecs.video.avc1;
 
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
-import co.casterlabs.flv4j.flv.tags.video.VideoData;
+import co.casterlabs.flv4j.codecs.VideoCodecData;
 import lombok.AllArgsConstructor;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14
 public record AVCVideoData(
     ASByteView view,
     AVCPacketData packetData
-) implements VideoData {
+) implements VideoCodecData {
 
     public AVCVideoData(ASByteView view) {
         this(
