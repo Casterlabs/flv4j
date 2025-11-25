@@ -16,6 +16,13 @@ public enum FLVVideoCodec {
     ON2_VP6_ALPHA(5),
 
     H264(7),
+
+    // Non-standard codecs that have been found in the wild.
+    NS_VP8(8),
+    NS_VP9(9),
+    NS_AV1(10),
+    NS_MPEG1(11),
+    NS_HEVC(12),
     ;
 
     public static final FLVVideoCodec[] LUT = new FLVVideoCodec[16];

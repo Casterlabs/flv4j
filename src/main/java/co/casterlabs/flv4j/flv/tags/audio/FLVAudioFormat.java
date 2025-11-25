@@ -21,7 +21,11 @@ public enum FLVAudioFormat {
 
     AAC(10),
     SPEEX(11),
-    // 12, 13 = reserved
+
+    // Non-standard codecs that have been found in the wild.
+    NS_MP2(12),
+    NS_OPUS(13),
+
     MP3_8(14),
 
     DEVICE_SPECIFIC(15),
