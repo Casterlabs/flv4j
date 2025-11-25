@@ -49,7 +49,7 @@ public record AVCVideoData(
     public final String toString() {
         return String.format(
             "AVCVideoData[type=%s (%d), compositionTimeOffset=%d, data=[size=%d]]",
-            null, this.rawType,
+            AVCPacketType.LUT[this.rawType], this.rawType,
             this.compositionTimeOffset,
             this.data.length
         );
