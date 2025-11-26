@@ -7,7 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASByteView;
 
 public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacketData {
 
-    public AVCDecoderConfigurationRecord from(int configurationVersion, int profileIndication, int profileCompatibility, int levelIndication, int lengthSizeMinusOne, AVCNalu[] sps, AVCNalu[] pps) {
+    public static AVCDecoderConfigurationRecord from(int configurationVersion, int profileIndication, int profileCompatibility, int levelIndication, int lengthSizeMinusOne, AVCNalu[] sps, AVCNalu[] pps) {
         ASAssert.u8(configurationVersion, "configurationVersion");
         ASAssert.u8(profileIndication, "profileIndication");
         ASAssert.u8(profileCompatibility, "profileCompatibility");
