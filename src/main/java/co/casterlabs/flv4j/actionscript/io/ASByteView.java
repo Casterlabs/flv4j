@@ -1,5 +1,7 @@
 package co.casterlabs.flv4j.actionscript.io;
 
+import java.util.Arrays;
+
 public record ASByteView(byte[] buffer, int offset, int length) {
 
     public ASByteView(byte[] buf) {
@@ -133,6 +135,30 @@ public record ASByteView(byte[] buffer, int offset, int length) {
         int len = (int) u32(index);
         byte[] bytes = bytes(index + 4, len);
         return new ByteString(bytes);
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        if (obj instanceof ASByteView other) {
+            if (this == obj) return true;
+            if (this.length != other.length) return false;
+
+            return Arrays.equals(
+                this.buffer, this.offset, this.offset + this.length,
+                other.buffer, other.offset, other.offset + other.length
+            );
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        for (int i = offset; i < this.length; i++) {
+            result = 31 * result + this.u8(i);
+        }
+        return result;
     }
 
 }
