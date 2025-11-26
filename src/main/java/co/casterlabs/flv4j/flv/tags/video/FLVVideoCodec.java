@@ -18,10 +18,8 @@ public enum FLVVideoCodec {
     H264(7),
 
     // Non-standard codecs that have been found in the wild.
-    NS_VP8(8),
-    NS_VP9(9),
-    NS_AV1(10),
-    NS_MPEG1(11),
+    NS_REALH263(8),
+    NS_MPEG4(9),
     NS_HEVC(12),
     ;
 

@@ -102,6 +102,15 @@ public record ASByteView(byte[] buffer, int offset, int length) {
             | (long) u8(index + 3) << 24;
     }
 
+    public long u48(int index) {
+        return (long) u8(index + 0) << 40
+            | (long) u8(index + 1) << 32
+            | (long) u8(index + 2) << 24
+            | (long) u8(index + 3) << 16
+            | (long) u8(index + 4) << 8
+            | (long) u8(index + 5) << 0;
+    }
+
     public double dbl(int index) {
         long bits = (long) u8(index + 0) << 56
             | (long) u8(index + 1) << 48

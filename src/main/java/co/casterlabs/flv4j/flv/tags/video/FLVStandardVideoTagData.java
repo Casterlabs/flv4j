@@ -4,6 +4,7 @@ import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.codecs.VideoCodecData;
 import co.casterlabs.flv4j.codecs.video.avc1.AVCVideoData;
+import co.casterlabs.flv4j.codecs.video.hvc1.HEVCVideoData;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
@@ -16,8 +17,9 @@ public record FLVStandardVideoTagData(
     public FLVStandardVideoTagData(ASByteView view) {
         this(
             view,
-            switch (FLVVideoCodec.LUT[view.u8(0) & 0b1111]) {
-                case H264 -> new AVCVideoData(view.slice(1));
+            switch (view.u8(0) & 0b1111) {
+                case 7 -> new AVCVideoData(view.slice(1));
+                case 12 -> new HEVCVideoData(view.slice(1));
                 default -> new VideoCodecData.Invalid(view.slice(1));
             }
         );

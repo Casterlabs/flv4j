@@ -72,6 +72,15 @@ public abstract class ASReader {
             | (long) u8() << 24;
     }
 
+    public long u48() throws IOException {
+        return (long) u8() << 40
+            | (long) u8() << 32
+            | (long) u8() << 24
+            | (long) u8() << 16
+            | (long) u8() << 8
+            | (long) u8() << 0;
+    }
+
     public final double dbl() throws IOException {
         long bits = (long) u8() << 56
             | (long) u8() << 48
