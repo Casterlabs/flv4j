@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10_1.pdf#page=76
 @AllArgsConstructor
 public enum FLVAudioFormat {
-    LPCM(0),
+    LPCM_PLATFORM_ENDIAN(0),
     ADPCM(1),
     MP3(2),
     LPCM_LE(3),

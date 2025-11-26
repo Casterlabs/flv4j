@@ -82,8 +82,8 @@ public class FLVAudio {
     }
 
 //    @Test
-//    public void standard_LPCM() throws IOException {
-//        audioTest("standard/audio/lpcm", FLVAudioFormat.LPCM);
+//    public void standard_LPCM_PLATFORM_ENDIAN() throws IOException {
+//        audioTest("standard/audio/lpcm", FLVAudioFormat.LPCM_PLATFORM_ENDIAN);
 //    }
 
     @Test
