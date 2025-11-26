@@ -2,16 +2,15 @@ package co.casterlabs.flv4j.flv.tags.audio.ex;
 
 import co.casterlabs.flv4j.FourCC;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
-import co.casterlabs.flv4j.codecs.AudioCodecData;
 
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio
 public record FLVExAudioTrack(
     FourCC codec,
     int id,
-    AudioCodecData data
+    FLVExAudioCodecData data
 ) {
 
-    public FLVExAudioTrack(FourCC codec, int id, AudioCodecData data) {
+    public FLVExAudioTrack(FourCC codec, int id, FLVExAudioCodecData data) {
         ASAssert.u8(id, "id");
         assert codec != null : "codec cannot be null";
         assert data != null : "data cannot be null";
@@ -23,7 +22,7 @@ public record FLVExAudioTrack(
     @Override
     public final String toString() {
         return String.format(
-            "FLVExAudioTrack[codec=%s, id=%d, data=%s",
+            "FLVExAudioTrack[codec=%s, id=%d, data=%s]",
             this.codec, this.id, this.data
         );
     }
