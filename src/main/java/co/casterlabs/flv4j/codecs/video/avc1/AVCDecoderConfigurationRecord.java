@@ -2,9 +2,58 @@ package co.casterlabs.flv4j.codecs.video.avc1;
 
 import java.util.Arrays;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 
 public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacketData {
+
+    public AVCDecoderConfigurationRecord from(int configurationVersion, int profileIndication, int profileCompatibility, int levelIndication, int lengthSizeMinusOne, AVCNalu[] sps, AVCNalu[] pps) {
+        ASAssert.u8(configurationVersion, "configurationVersion");
+        ASAssert.u8(profileIndication, "profileIndication");
+        ASAssert.u8(profileCompatibility, "profileCompatibility");
+        ASAssert.u8(levelIndication, "levelIndication");
+        ASAssert.u2(lengthSizeMinusOne, "lengthSizeMinusOne");
+        ASAssert.u5(sps.length, "sps.length");
+        ASAssert.u8(pps.length, "pps.length");
+
+        int requiredLength = 6; // Fixed header size
+        for (AVCNalu nal : sps) {
+            requiredLength += 2 + nal.view().length(); // 2 bytes for length prefix
+        }
+        for (AVCNalu nal : pps) {
+            requiredLength += 2 + nal.view().length(); // 2 bytes for length prefix
+        }
+
+        byte[] data = new byte[requiredLength];
+        int offset = 0;
+
+        data[offset++] = (byte) (configurationVersion & 0xFF);
+        data[offset++] = (byte) (profileIndication & 0xFF);
+        data[offset++] = (byte) (profileCompatibility & 0xFF);
+        data[offset++] = (byte) (levelIndication & 0xFF);
+        data[offset++] = (byte) (0b11111100 | (lengthSizeMinusOne & 0b11));
+        data[offset++] = (byte) (0b11100000 | (sps.length & 0b11111));
+
+        for (AVCNalu nal : sps) {
+            int nalLength = nal.view().length();
+            data[offset++] = (byte) ((nalLength >> 8) & 0xFF);
+            data[offset++] = (byte) ((nalLength >> 0) & 0xFF);
+            System.arraycopy(nal.view().buffer(), nal.view().offset(), data, offset, nalLength);
+            offset += nalLength;
+        }
+
+        data[offset++] = (byte) (pps.length & 0xFF);
+
+        for (AVCNalu nal : pps) {
+            int nalLength = nal.view().length();
+            data[offset++] = (byte) ((nalLength >> 8) & 0xFF);
+            data[offset++] = (byte) ((nalLength >> 0) & 0xFF);
+            System.arraycopy(nal.view().buffer(), nal.view().offset(), data, offset, nalLength);
+            offset += nalLength;
+        }
+
+        return new AVCDecoderConfigurationRecord(new ASByteView(data));
+    }
 
     public int configurationVersion() {
         return this.view.u8(0);

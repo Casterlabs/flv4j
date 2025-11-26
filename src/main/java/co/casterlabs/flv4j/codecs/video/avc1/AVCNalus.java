@@ -11,7 +11,31 @@ import co.casterlabs.flv4j.actionscript.io.ASByteView;
 // We have to count how many NALs are present in the given ASByteView.
 public record AVCNalus(ASByteView view) implements AVCPacketData {
 
-    public int numberOfNals() {
+    public AVCNalus from(AVCNalu[] nalus) {
+        int requiredLength = nalus.length * 4; // 4 bytes for each NAL length prefix
+        for (AVCNalu nal : nalus) {
+            requiredLength += nal.view().length();
+        }
+
+        byte[] data = new byte[requiredLength];
+        for (int i = 0, offset = 0; i < nalus.length; i++) {
+            AVCNalu nal = nalus[i];
+            int nalLength = nal.view().length();
+
+            // Write the length prefix
+            data[offset++] = (byte) ((nalLength >> 24) & 0xFF);
+            data[offset++] = (byte) ((nalLength >> 16) & 0xFF);
+            data[offset++] = (byte) ((nalLength >> 8) & 0xFF);
+            data[offset++] = (byte) ((nalLength >> 0) & 0xFF);
+
+            // Write the NAL data
+            System.arraycopy(nal.view().buffer(), nal.view().offset(), data, offset, nalLength);
+            offset += nalLength;
+        }
+        return new AVCNalus(new ASByteView(data));
+    }
+
+    public int numberOfNalus() {
         int offset = 0;
         int count = 0;
         while (offset + 4 <= this.view.length()) {
@@ -23,7 +47,7 @@ public record AVCNalus(ASByteView view) implements AVCPacketData {
         return count;
     }
 
-    public AVCNalu[] getNalus() {
+    public AVCNalu[] nalus() {
         List<AVCNalu> nals = new ArrayList<>();
         int offset = 0;
         while (offset + 4 <= this.view.length()) {
@@ -38,7 +62,7 @@ public record AVCNalus(ASByteView view) implements AVCPacketData {
 
     @Override
     public String toString() {
-        return Arrays.toString(this.getNalus());
+        return Arrays.toString(this.nalus());
     }
 
 }

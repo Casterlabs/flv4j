@@ -14,21 +14,29 @@ import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=newer%20expanded%20header-,Packets,-%5Bedit%5D
 //https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf
 public record FLVTag(
-    FLVTagType type,
+    int rawType,
     long timestamp,
     int streamId,
     FLVTagData data
 ) implements FLVSerializable {
 
     public FLVTag(FLVTagType type, long timestamp, int streamId, FLVTagData data) {
-        assert type != null : "type cannot be null";
+        this(type.id, timestamp, streamId, data);
+    }
+
+    public FLVTag(int rawType, long timestamp, int streamId, FLVTagData data) {
         assert data != null : "data cannot be null";
+        ASAssert.u8(rawType, "rawType");
         ASAssert.u32(timestamp, "timestamp");
         ASAssert.u24(streamId, "streamId");
-        this.type = type;
+        this.rawType = rawType;
         this.timestamp = timestamp;
         this.streamId = streamId;
         this.data = data;
+    }
+
+    public FLVTagType type() {
+        return FLVTagType.LUT[this.rawType];
     }
 
     @Override
@@ -43,7 +51,7 @@ public record FLVTag(
 
     @Override
     public void serialize(ASWriter writer) throws IOException {
-        writer.u8(this.type.id);
+        writer.u8(this.rawType);
         writer.u24(this.data.size());
 
         writer.u24((int) this.timestamp & 0xFFFFFF);
@@ -72,7 +80,7 @@ public record FLVTag(
         };
 
         return new FLVTag(
-            FLVTagType.LUT[packetType],
+            packetType,
             timestamp,
             streamId,
             data
@@ -82,8 +90,8 @@ public record FLVTag(
     @Override
     public final String toString() {
         return String.format(
-            "FLVTag[packetType=%s, timestamp=%d, streamId=%d, data=[%s], size=%d]",
-            this.type,
+            "FLVTag[packetType=%s (%d), timestamp=%d, streamId=%d, data=[%s], size=%d]",
+            this.type(), this.rawType,
             this.timestamp,
             this.streamId,
             this.data,

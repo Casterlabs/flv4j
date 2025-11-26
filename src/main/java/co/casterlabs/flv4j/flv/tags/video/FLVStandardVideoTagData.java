@@ -1,5 +1,6 @@
 package co.casterlabs.flv4j.flv.tags.video;
 
+import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.codecs.VideoCodecData;
 import co.casterlabs.flv4j.codecs.video.avc1.AVCVideoData;
@@ -20,6 +21,23 @@ public record FLVStandardVideoTagData(
                 default -> new VideoCodecData.Invalid(view.slice(1));
             }
         );
+    }
+
+    public static FLVStandardVideoTagData from(FLVVideoFrameType frameType, FLVVideoCodec codec, VideoCodecData data) {
+        return from(frameType.id, codec.id, data);
+    }
+
+    public static FLVStandardVideoTagData from(int rawFrameType, int rawCodec, VideoCodecData codecData) {
+        ASAssert.u4(rawFrameType, "rawFrameType");
+        ASAssert.u4(rawCodec, "rawCodec");
+
+        byte[] data = new byte[1 + codecData.view().length()];
+
+        data[0] = (byte) ((rawFrameType << 4) | (rawCodec & 0b1111));
+
+        System.arraycopy(codecData.view().buffer(), codecData.view().offset(), data, 1, codecData.view().length());
+
+        return new FLVStandardVideoTagData(new ASByteView(data));
     }
 
     @Override

@@ -14,6 +14,10 @@ public class ASAssert {
         assert value >= 0 && value <= 0xF : name + " must be between 0 and 15";
     }
 
+    public static void u5(int value, String name) {
+        assert value >= 0 && value <= 0x1F : name + " must be between 0 and 31";
+    }
+
     public static void u8(int value, String name) {
         assert value >= 0 && value <= 0xFF : name + " must be between 0 and 255";
     }
