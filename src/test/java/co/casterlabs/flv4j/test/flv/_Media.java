@@ -15,7 +15,7 @@ class _Media {
         try {
             String licenseInfo = StreamUtil.toString(
                 _Media.class.getClassLoader()
-                    .getResourceAsStream("media/license.txt"),
+                    .getResourceAsStream("media/sources/license.txt"),
                 StandardCharsets.UTF_8
             );
 
@@ -26,14 +26,14 @@ class _Media {
         }
     }
 
-    static InputStream stream() {
+    static InputStream stream(String name) {
         return _Media.class
             .getClassLoader()
-            .getResourceAsStream("media/bigbuckbunny_320x180_h264_aac.flv");
+            .getResourceAsStream("media/" + name + ".flv");
     }
 
-    static byte[] bytes() throws IOException {
-        return StreamUtil.toBytes(stream());
+    static byte[] bytes(String name) throws IOException {
+        return StreamUtil.toBytes(stream(name));
     }
 
 }
