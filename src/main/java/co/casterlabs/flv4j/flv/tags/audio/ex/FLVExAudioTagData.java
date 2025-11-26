@@ -6,11 +6,12 @@ import java.util.List;
 
 import co.casterlabs.flv4j.FourCC;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
+import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
+import co.casterlabs.flv4j.codecs.AudioCodecData;
 import co.casterlabs.flv4j.flv.tags.audio.FLVAudioTagData;
-import co.casterlabs.flv4j.flv.tags.audio.data.AudioData;
 
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio
 public record FLVExAudioTagData(
@@ -89,7 +90,7 @@ public record FLVExAudioTagData(
                 }
             }
 
-            size += track.data().size();
+            size += track.data().view().length();
         }
 
         return size;
@@ -135,10 +136,10 @@ public record FLVExAudioTagData(
                 writer.u8(track.id());
 
                 if (this.rawMultitrackType != FLVExAudioMultitrackType.ONE_TRACK.id) {
-                    writer.u24(track.data().size());
+                    writer.u24(track.data().view().length());
                 }
             }
-            track.data().serialize(writer);
+            writer.bytes(track.data().view());
         }
     }
 
@@ -187,7 +188,9 @@ public record FLVExAudioTagData(
                 }
             }
 
-            AudioData data = new AudioData(reader.bytes(trackDataSize));
+            AudioCodecData data = switch (codec.string()) {
+                default -> new AudioCodecData.Invalid(new ASByteView(reader.bytes(trackDataSize)));
+            };
             tracks.add(new FLVExAudioTrack(codec, audioTrackId, data));
         }
 

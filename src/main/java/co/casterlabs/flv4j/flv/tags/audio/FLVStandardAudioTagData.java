@@ -1,34 +1,44 @@
 package co.casterlabs.flv4j.flv.tags.audio;
 
-import java.io.IOException;
-
-import co.casterlabs.flv4j.actionscript.io.ASAssert;
-import co.casterlabs.flv4j.actionscript.io.ASReader;
-import co.casterlabs.flv4j.actionscript.io.ASSizer;
-import co.casterlabs.flv4j.actionscript.io.ASWriter;
-import co.casterlabs.flv4j.flv.tags.audio.data.AudioData;
+import co.casterlabs.flv4j.FLVBVRawSerializable;
+import co.casterlabs.flv4j.actionscript.io.ASByteView;
+import co.casterlabs.flv4j.codecs.AudioCodecData;
+import co.casterlabs.flv4j.codecs.audio.aac.AACAudioData;
 
 // https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=10
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio
 public record FLVStandardAudioTagData(
-    int rawFormat,
-    int rawRate,
-    int rawSampleSize,
-    int rawChannels,
-    AudioData data
-) implements FLVAudioTagData {
+    ASByteView view,
+    AudioCodecData data
+) implements FLVAudioTagData, FLVBVRawSerializable {
 
-    public FLVStandardAudioTagData(int rawFormat, int rawRate, int rawSampleSize, int rawChannels, AudioData data) {
-        ASAssert.u4(rawFormat, "rawFormat");
-        ASAssert.u2(rawRate, "rawRate");
-        ASAssert.bit(rawSampleSize, "rawSampleSize");
-        ASAssert.bit(rawChannels, "rawChannels");
-        assert data != null : "data cannot be null";
-        this.rawFormat = rawFormat;
-        this.rawRate = rawRate;
-        this.rawSampleSize = rawSampleSize;
-        this.rawChannels = rawChannels;
-        this.data = data;
+    public FLVStandardAudioTagData(ASByteView view) {
+        this(
+            view,
+            switch (view.u8(0) >> 4 & 0b1111) {
+                case 10 -> new AACAudioData(view.slice(1));
+                default -> new AudioCodecData.Invalid(view.slice(1));
+            }
+        );
+    }
+
+    public static FLVStandardAudioTagData from(FLVAudioFormat format, FLVAudioRate rate, FLVAudioSampleSize sampleSize, FLVAudioChannels channels, AudioCodecData data) {
+        return from(format.id, rate.id, sampleSize.id, channels.id, data);
+    }
+
+    public static FLVStandardAudioTagData from(int rawFormat, int rawRate, int rawSampleSize, int rawChannels, AudioCodecData audioData) {
+        ASByteView dataView = audioData.view();
+
+        byte[] bytes = new byte[1 + dataView.length()];
+
+        bytes[0] = (byte) (((rawFormat & 0b1111) << 4) |
+            ((rawRate & 0b11) << 2) |
+            ((rawSampleSize & 0b1) << 1) |
+            (rawChannels & 0b1));
+
+        System.arraycopy(dataView.buffer(), dataView.offset(), bytes, 1, dataView.length());
+
+        return new FLVStandardAudioTagData(new ASByteView(bytes));
     }
 
     @Override
@@ -37,71 +47,38 @@ public record FLVStandardAudioTagData(
     }
 
     public FLVAudioFormat format() {
-        return FLVAudioFormat.LUT[this.rawFormat];
+        int rawFormat = this.view.u8(0) >> 4 & 0b1111;
+        return FLVAudioFormat.LUT[rawFormat];
     }
 
     public FLVAudioRate rate() {
-        return FLVAudioRate.LUT[this.rawRate];
+        int rawRate = this.view.u8(0) >> 2 & 0b11;
+        return FLVAudioRate.LUT[rawRate];
     }
 
     public FLVAudioSampleSize sampleSize() {
-        return FLVAudioSampleSize.LUT[this.rawSampleSize];
+        int rawSampleSize = this.view.u8(0) >> 1 & 0b1;
+        return FLVAudioSampleSize.LUT[rawSampleSize];
     }
 
     public FLVAudioChannels channels() {
-        return FLVAudioChannels.LUT[this.rawChannels];
+        int rawChannels = this.view.u8(0) & 0b1;
+        return FLVAudioChannels.LUT[rawChannels];
     }
 
     @Override
     public boolean isSequenceHeader() {
-        return switch (this.format()) {
-//            case AAC -> ((AACAudioData) this.data).rawType() == 0;
-            case AAC -> this.data.raw()[0] == 0;
-            default -> false; // TODO properly parse out the data.
-        };
-    }
-
-    @Override
-    public int size() {
-        return ASSizer.u8 // format/rate/sampleSize/channels
-            + this.data.size();
-    }
-
-    @Override
-    public void serialize(ASWriter writer) throws IOException {
-        int fb = this.rawFormat << 4 | this.rawRate << 2 | this.rawSampleSize << 1 | this.rawChannels;
-        writer.u8(fb);
-        this.data.serialize(writer);
-    }
-
-    public static FLVStandardAudioTagData parse(int fb, ASReader reader, int length) throws IOException {
-        int format = fb >> 4 & 0b1111;
-        int rate = fb >> 2 & 0b11;
-        int sampleSize = fb >> 1 & 0b1;
-        int channels = fb & 0b1;
-
-        int dataLen = length - 1;
-        AudioData data = switch (format) {
-            default -> new AudioData(reader.bytes(dataLen));
-        };
-
-        return new FLVStandardAudioTagData(
-            format,
-            rate,
-            sampleSize,
-            channels,
-            data
-        );
+        return this.data.isSequenceHeader();
     }
 
     @Override
     public final String toString() {
         return String.format(
-            "FLVAudioPayload[format=%s (%d), rate=%s (%d), sampleSize=%s (%d), channels=%s (%d), data=%s, isSequenceHeader=%b]",
-            this.format(), this.rawFormat,
-            this.rate(), this.rawRate,
-            this.sampleSize(), this.rawSampleSize,
-            this.channels(), this.rawChannels,
+            "FLVAudioPayload[format=%s (%d), rate=%s (%d), sampleSize=%s (%d), channels=%s (%d), isSequenceHeader=%b, data=%s]",
+            this.format(), this.view.u8(0) >> 4 & 0b1111,
+            this.rate(), this.view.u8(0) >> 2 & 0b11,
+            this.sampleSize(), this.view.u8(0) >> 1 & 0b1,
+            this.channels(), this.view.u8(0) & 0b1,
             this.data,
             this.isSequenceHeader()
         );
