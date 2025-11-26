@@ -54,3 +54,11 @@ Our in-house library for FLV, RTMP and AMF.
 - ✅ Handshake
 - ✅ Chunk Streams
 - ❓ [Enhanced](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
+
+## Relevant specs
+
+- [SWF](https://web.archive.org/web/20120526025653/http://wwwimages.adobe.com/www.adobe.com/content/dam/Adobe/en/devnet/swf/pdf/swf_file_format_spec_v10.pdf)
+- [FLV](https://rtmp.veriskope.com/pdf/video_file_format_spec_v10_1.pdf)
+- [AMF0](https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf)
+- [RTMP](https://rtmp.veriskope.com/docs/spec/)
+- [Veovera's Enhanced RTMP](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
