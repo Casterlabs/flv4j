@@ -46,7 +46,7 @@ public class StreamFLVMuxer {
         if (this.timestampOffset != 0) {
             tag = new FLVTag(
                 // Modify the tag with our new ts offset.
-                tag.type(),
+                tag.rawType(),
                 Math.max(tag.timestamp() + this.timestampOffset, 0), // Min. value of 0!
                 tag.streamId(),
                 tag.data()
