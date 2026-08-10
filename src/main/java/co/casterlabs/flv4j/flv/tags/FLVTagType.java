@@ -9,7 +9,7 @@ public enum FLVTagType {
     SCRIPT(18),
     ;
 
-    public static final FLVTagType[] LUT = new FLVTagType[255];
+    public static final FLVTagType[] LUT = new FLVTagType[256];
     static {
         for (FLVTagType e : values()) {
             LUT[e.id] = e;
