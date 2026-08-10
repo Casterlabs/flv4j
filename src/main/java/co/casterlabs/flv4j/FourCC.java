@@ -8,6 +8,7 @@ import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
 public record FourCC(long bits, String string) implements FLVSerializable {
+
     public FourCC(long bits, String string) {
         ASAssert.u32(bits, "bits");
         assert string.length() == 4 : "Invalid FourCC length: " + string.length();
@@ -43,10 +44,12 @@ public record FourCC(long bits, String string) implements FLVSerializable {
     }
 
     private static final long stringToBits(String string) {
-        int a = string.charAt(0) & 0xFF;
-        int b = string.charAt(1) & 0xFF;
-        int c = string.charAt(2) & 0xFF;
-        int d = string.charAt(3) & 0xFF;
+        assert string.length() == 4 : "FourCC string must be exactly 4 characters, got: " + string.length();
+        int a = string.charAt(0);
+        int b = string.charAt(1);
+        int c = string.charAt(2);
+        int d = string.charAt(3);
+        assert (a | b | c | d) <= 0x7F : "FourCC string must contain only 7-bit ASCII characters: " + string;
         return (long) a << 24 | (long) b << 16 | (long) c << 8 | d;
     }
 
