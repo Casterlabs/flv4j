@@ -147,7 +147,7 @@ public record FLVExAudioTagData(
         while (rawAudioPacketType == FLVExAudioPacketType.MOD_EX.id) {
             int modDataSize = data.u8(offset++) + 1;
             if (modDataSize == 256) {
-                modDataSize += data.u16(offset);
+                modDataSize = data.u16(offset) + 1;
                 offset += 2;
             }
 
