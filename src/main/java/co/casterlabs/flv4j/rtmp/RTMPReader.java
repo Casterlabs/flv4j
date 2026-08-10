@@ -31,7 +31,7 @@ public class RTMPReader {
     void incrementRead(int amount) {
         this.read += amount;
         if (this.read > 0xFFFFFFFFL) {
-            this.read %= 0xFFFFFFFFL; // wrap around after 32 bits.
+            this.read %= 0x100000000L; // wrap around after 32 bits.
         }
     }
 
