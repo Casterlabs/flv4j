@@ -44,7 +44,7 @@ public record FLVExAudioTagData(
     public static FLVExAudioTagData from(int rawType, @NonNull FLVExAudioModifier[] modifiers, @NonNull FLVExAudioTrack... tracks) {
         assert tracks.length > 0 : "At least one track must be provided.";
 
-        // We have to serialize the content to an first.
+        // We have to serialize the content first.
         // That way we have valid data to pass into the constructor.
 
         int rawMultitrackType = -1; // -1 if not multitrack
@@ -109,6 +109,8 @@ public record FLVExAudioTagData(
             }
         }
 
+        // The FOURCC is written once for a normal track, and once for the entire
+        // multitrack group when all tracks use the same codec.
         if (rawMultitrackType != FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
             writer.u32(tracks[0].codec().bits());
         }
@@ -140,6 +142,7 @@ public record FLVExAudioTagData(
         int offset = 0;
         int rawAudioPacketType = data.u8(offset++) & 0b1111;
 
+        // ModEx packets form a chain which eventually terminates in the actual type.
         List<FLVExAudioModifier> modifiers = new LinkedList<>();
         while (rawAudioPacketType == FLVExAudioPacketType.MOD_EX.id) {
             int modDataSize = data.u8(offset++) + 1;
@@ -162,6 +165,7 @@ public record FLVExAudioTagData(
         FourCC codec = null; // Silence the compiler
 
         if (rawAudioPacketType == FLVExAudioPacketType.MULTITRACK.id) {
+            // Multitrack signaling is immediately followed by the actual packet type.
             rawAudioMultitrackType = data.u8(offset) >> 4 & 0b1111;
             rawAudioPacketType = data.u8(offset) & 0b1111; // NB: MUST not be MULTITRACK
             offset++;
@@ -185,6 +189,7 @@ public record FLVExAudioTagData(
                 sizeOfAudioTrack = data.length() - offset;
             } else {
                 if (rawAudioMultitrackType == FLVExAudioMultitrackType.MANY_TRACKS_MANY_CODECS.id) {
+                    // Every track defines its own codec.
                     codec = new FourCC(data.u32(offset));
                     offset += 4;
                 }
@@ -192,6 +197,7 @@ public record FLVExAudioTagData(
                 audioTrackId = data.u8(offset++);
 
                 if (rawAudioMultitrackType == FLVExAudioMultitrackType.ONE_TRACK.id) {
+                    // Has track id, but no size.
                     sizeOfAudioTrack = data.length() - offset;
                 } else {
                     sizeOfAudioTrack = data.u24(offset);
