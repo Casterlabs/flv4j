@@ -104,6 +104,11 @@ public record FLVExAudioChannelConfig(ASByteView view, int rawOrder, int channel
         );
     }
 
+    @Override
+    public boolean isSequenceHeader() {
+        return true;
+    }
+
     public FLVExAudioChannelOrder order() {
         return FLVExAudioChannelOrder.LUT[this.rawOrder];
     }
