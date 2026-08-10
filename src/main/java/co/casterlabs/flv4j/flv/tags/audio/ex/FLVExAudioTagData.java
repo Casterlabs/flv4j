@@ -205,13 +205,15 @@ public record FLVExAudioTagData(
                 }
             }
 
+            ASByteView trackDataView = data.slice(offset, sizeOfAudioTrack);
             FLVExAudioCodecData trackData = null;
+
             if (rawAudioPacketType == FLVExAudioPacketType.MULTICHANNEL_CONFIG.id) {
-                trackData = FLVExAudioChannelConfig.from(data.slice(offset, sizeOfAudioTrack));
+                trackData = FLVExAudioChannelConfig.from(trackDataView);
             } else {
                 trackData = switch (codec.string()) {
                     // TODO
-                    default -> new AudioCodecData.Invalid(data.slice(offset, sizeOfAudioTrack));
+                    default -> new AudioCodecData.Invalid(trackDataView);
                 };
             }
             offset += sizeOfAudioTrack;

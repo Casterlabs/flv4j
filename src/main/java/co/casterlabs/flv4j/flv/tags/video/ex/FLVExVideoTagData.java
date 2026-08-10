@@ -265,10 +265,12 @@ public record FLVExVideoTagData(
                 sizeOfVideoTrack -= 3;
             }
 
+            ASByteView trackDataView = data.slice(offset, sizeOfVideoTrack);
             FLVExVideoCodecData trackData;
+
             trackData = switch (codec.string()) {
                 // TODO
-                default -> new VideoCodecData.Invalid(data.slice(offset, sizeOfVideoTrack));
+                default -> new VideoCodecData.Invalid(trackDataView);
             };
             offset += sizeOfVideoTrack;
 
