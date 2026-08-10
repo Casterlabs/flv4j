@@ -68,7 +68,7 @@ public record FLVTag(
 
         int timestampL24 = reader.u24();
         int timestampH8 = reader.u8();
-        long timestamp = (timestampH8 << 24) | timestampL24;
+        long timestamp = ((long) timestampH8 << 24) | timestampL24;
 
         int streamId = reader.u24();
 
