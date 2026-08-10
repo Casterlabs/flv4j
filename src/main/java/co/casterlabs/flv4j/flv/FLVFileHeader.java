@@ -57,7 +57,7 @@ public record FLVFileHeader(
     public static FLVFileHeader parse(ASReader reader) throws IOException {
         byte[] sig = reader.bytes(MAGIC.length);
         if (!Arrays.equals(sig, MAGIC)) {
-            throw new IllegalArgumentException("Packet signature should be FLV, but is instead: " + new String(sig));
+            throw new IllegalArgumentException("Packet signature should be FLV, but is instead: " + new String(sig, StandardCharsets.US_ASCII));
         }
 
         int version = reader.u8();
