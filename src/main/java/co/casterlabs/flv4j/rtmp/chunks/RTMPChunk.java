@@ -12,7 +12,7 @@ public record RTMPChunk<M extends RTMPMessage>(
     @Override
     public final String toString() {
         return String.format(
-            "RTMPChunk[timestamp=%d, chunkStreamId=%d, messageTypeId=%d, messageStreamId=%d, message=[length=%d, data=%s]",
+            "RTMPChunk[timestamp=%d, chunkStreamId=%d, messageTypeId=%d, messageStreamId=%d, message=[length=%d, data=%s]]",
             this.timestamp,
             this.chunkStreamId,
             this.messageTypeId,
