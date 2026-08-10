@@ -19,32 +19,19 @@ class _ObjectUtils {
 
     static Map<ByteString, AMF0Type> parseMap(ASReader reader) throws IOException {
         Map<ByteString, AMF0Type> map = new LinkedHashMap<>();
-
-        ByteString key = null;
         while (true) {
-            if (key == null) {
-                String0 keyData = String0.parse(reader); // Type is implicit, which means no marker.
-                key = keyData.value();
-//                System.out.printf("[ECMA?]Object KEY: %d/%d @ %s\n", idx, bytes.length, key);
-                continue;
-            }
-
+            ByteString key = String0.parse(reader).value(); // NB: Type is implicit, which means no marker.
             AMF0Type value = AMF0Type.parse(reader);
+
             if (value.type() == Type.OBJECT_END) {
                 if (key.byteLength() > 0) {
                     throw new IllegalArgumentException("OBJECT_END must be preceeded by an empty key!");
                 }
-
-                // We're done!
-                break;
+                break; // We're done!
             }
 
-//            System.out.printf("[ECMA?]Object VALUE: %d/%d @ %d %s | %s\n", idx, bytes.length, value.size(), value.type(), value);
-
             map.put(key, value);
-            key = null;
         }
-
         return Collections.unmodifiableMap(map);
     }
 
