@@ -42,7 +42,11 @@ public interface AMF0Type extends FLVSerializable {
 
     @SuppressWarnings("unchecked")
     public static <T extends AMF0Type> T parse(ASReader reader) throws IOException {
-        Type type = Type.LUT[reader.u8()];
+        int marker = reader.u8();
+        Type type = Type.LUT[marker];
+        if (type == null) {
+            throw new IOException("Unknown AMF0 type marker: " + marker);
+        }
         return (T) type.parser.parse(reader);
     }
 
@@ -71,7 +75,7 @@ public interface AMF0Type extends FLVSerializable {
         // @formatter:on
         ;
 
-        public static final Type[] LUT = new Type[18];
+        public static final Type[] LUT = new Type[256];
         static {
             for (Type e : values()) {
                 LUT[e.id] = e;
