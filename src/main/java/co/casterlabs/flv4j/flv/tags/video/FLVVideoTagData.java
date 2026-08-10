@@ -8,7 +8,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.flv.tags.FLVTagData;
 import co.casterlabs.flv4j.flv.tags.video.ex.FLVExVideoTagData;
 
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
+// https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-video
 public interface FLVVideoTagData extends FLVTagData, FLVBVRawSerializable {

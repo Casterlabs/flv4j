@@ -7,7 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import lombok.AllArgsConstructor;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=19
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=19
 /**
  * The client or the server sends this message to limit the output bandwidth of
  * its peer. The peer receiving this message limits its output bandwidth by

@@ -9,7 +9,7 @@ import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
 import co.casterlabs.flv4j.rtmp.net.rpc.RPCHandler;
 import lombok.SneakyThrows;
 
-// https://rtmp.veriskope.com/docs/spec/#722netstream-commands
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=37
 public abstract class NetStream extends RPCHandler {
     public @Nullable StatusHandler onStatus;
 

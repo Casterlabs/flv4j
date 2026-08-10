@@ -11,7 +11,7 @@ import co.casterlabs.flv4j.rtmp.net.NetStream.StatusHandler;
 import co.casterlabs.flv4j.rtmp.net.rpc.CallError;
 import co.casterlabs.flv4j.rtmp.net.rpc.RPCHandler;
 
-// https://rtmp.veriskope.com/docs/spec/#721netconnection-commands
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=29
 public abstract class NetConnection extends RPCHandler {
     public @Nullable StatusHandler onStatus;
 

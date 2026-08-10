@@ -10,7 +10,7 @@ import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.actionscript.io.ByteString;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=8
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=8
 public record TypedObject0(
     ByteString className,
     Map<ByteString, AMF0Type> map

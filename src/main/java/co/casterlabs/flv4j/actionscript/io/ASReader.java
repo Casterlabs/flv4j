@@ -10,8 +10,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=2
-// https://rtmp.veriskope.com/pdf/amf3-file-format-spec.pdf#page=3 for u29
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=2
+// https://veovera.org/docs/legacy/amf3-file-format-spec.pdf#page=3 for u29
 public abstract class ASReader {
 
     public abstract ASReader limited(int len);

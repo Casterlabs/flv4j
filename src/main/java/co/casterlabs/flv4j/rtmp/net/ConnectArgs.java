@@ -20,7 +20,7 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-// https://rtmp.veriskope.com/docs/spec/#7211connect
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=29
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhancing-netconnection-connect-command
 @Data
 @ToString

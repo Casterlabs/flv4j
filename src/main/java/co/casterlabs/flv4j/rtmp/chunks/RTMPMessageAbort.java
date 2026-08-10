@@ -6,7 +6,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=19
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=19
 /**
  * Used to notify the peer if it is waiting for chunks to complete a message,
  * then to discard the partially received message over a chunk stream. The peer

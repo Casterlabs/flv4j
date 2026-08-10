@@ -7,7 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=7
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=7
 public record StrictArray0(
     AMF0Type[] array
 ) implements AMF0Type {

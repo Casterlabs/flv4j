@@ -7,7 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=7
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=7
 public record RTMPHandshake0(
     int version
 ) implements FLVSerializable {

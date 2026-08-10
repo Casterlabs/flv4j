@@ -3,7 +3,7 @@ package co.casterlabs.flv4j.actionscript.amf0;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=8
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=8
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SwitchToAMF3 extends _MarkerType {
     public static final SwitchToAMF3 INSTANCE = new SwitchToAMF3();

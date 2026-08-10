@@ -3,7 +3,7 @@ package co.casterlabs.flv4j.actionscript.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=2
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=2
 public record ASWriter(
     OutputStream out
 ) {

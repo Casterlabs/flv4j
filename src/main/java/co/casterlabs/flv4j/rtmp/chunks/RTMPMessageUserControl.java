@@ -15,7 +15,7 @@ import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamDryControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamEOFControlMessage;
 import co.casterlabs.flv4j.rtmp.chunks.control.RTMPStreamIsRecordedControlMessage;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=24
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=24
 /**
  * The client or the server sends this message to notify the peer about the user
  * control events. This message carries Event type and Event data.
@@ -48,7 +48,7 @@ public record RTMPMessageUserControl(RTMPControlMessage eventData) implements RT
         int eventType = reader.u16();
         int dataLen = length - 2;
 
-        // https://rtmp.veriskope.com/docs/spec/#717user-control-message-events
+        // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=27
         RTMPControlMessage eventData = switch (eventType) {
             case 0 -> RTMPStreamBeginControlMessage.parse(reader, dataLen);
             case 1 -> RTMPStreamEOFControlMessage.parse(reader, dataLen);

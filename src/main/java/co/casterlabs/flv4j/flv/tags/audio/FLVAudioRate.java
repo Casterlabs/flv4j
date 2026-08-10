@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.flv.tags.audio;
 
 import lombok.AllArgsConstructor;
 
-//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=10
+//https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=10
 @AllArgsConstructor
 public enum FLVAudioRate {
     KHZ_5_5(0),

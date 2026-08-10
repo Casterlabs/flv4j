@@ -12,7 +12,7 @@ import co.casterlabs.flv4j.actionscript.amf0.String0;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=24
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=24
 public record RTMPMessageCommand0(
     String0 commandName,
     Number0 transactionId,

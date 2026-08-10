@@ -9,8 +9,8 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.flv.tags.FLVTagData;
 
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14 // WRONG!
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10_1.pdf#page=80 // THIS ONE IS CORRECT!
+// https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=14 // WRONG!
+// https://veovera.org/docs/legacy/video-file-format-v10-1-spec.pdf#page=80 // THIS ONE IS CORRECT!
 public record FLVScriptTagData(
     String0 method,
     ECMAArray0 value

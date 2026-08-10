@@ -16,7 +16,7 @@ import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=13
 @RequiredArgsConstructor
 public class RTMPReader {
     private final ASReader reader;
@@ -58,7 +58,7 @@ public class RTMPReader {
     }
 
     public RTMPChunk<?> read() throws IOException {
-        // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=13
+        // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=13
         int fb = this.reader.u8();
         this.incrementRead(1);
 
@@ -124,7 +124,7 @@ public class RTMPReader {
             long messageStreamId;
             switch (format) {
                 case 0: {
-                    // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+                    // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=14
                     timestampDelta = 0;
 
                     timestamp = reader.u24();
@@ -143,7 +143,7 @@ public class RTMPReader {
                 }
 
                 case 1: {
-                    // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+                    // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=14
                     // (reuse messageStreamId)
                     timestamp = this.previousTimestamp;
                     messageStreamId = this.previousMessageStreamId;
@@ -162,7 +162,7 @@ public class RTMPReader {
                 }
 
                 case 2: {
-                    // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
+                    // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=15
                     // (reuse everything except timestamp)
                     timestamp = this.previousTimestamp;
                     messageLength = this.previousMessageLength;
@@ -181,7 +181,7 @@ public class RTMPReader {
                 }
 
                 case 3:
-                    // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
+                    // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=15
                     // (reuse all previous values)
 
                     // NB: Documentation missing critical information: "Reuse all previous values"

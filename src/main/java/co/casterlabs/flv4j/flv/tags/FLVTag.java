@@ -12,7 +12,7 @@ import co.casterlabs.flv4j.flv.tags.script.FLVScriptTagData;
 import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 
 // https://en.wikipedia.org/wiki/Flash_Video#Flash_Video_Structure:~:text=newer%20expanded%20header-,Packets,-%5Bedit%5D
-//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf
+//https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf
 public record FLVTag(
     int rawType,
     long timestamp,

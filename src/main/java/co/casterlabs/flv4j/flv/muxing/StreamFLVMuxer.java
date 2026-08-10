@@ -9,7 +9,7 @@ import co.casterlabs.flv4j.flv.tags.FLVTag;
 import lombok.Getter;
 import lombok.NonNull;
 
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=8
+// https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=8
 public class StreamFLVMuxer {
     private final @Getter FLVFileHeader header;
     private final ASWriter writer;

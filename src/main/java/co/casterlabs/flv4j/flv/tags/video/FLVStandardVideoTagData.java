@@ -6,7 +6,7 @@ import co.casterlabs.flv4j.codecs.VideoCodecData;
 import co.casterlabs.flv4j.codecs.video.avc1.AVCVideoData;
 import co.casterlabs.flv4j.codecs.video.hvc1.HEVCVideoData;
 
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
+// https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-video
 public record FLVStandardVideoTagData(

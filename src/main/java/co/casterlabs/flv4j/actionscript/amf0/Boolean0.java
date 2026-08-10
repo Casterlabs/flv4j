@@ -6,7 +6,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=5
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=5
 public record Boolean0(
     boolean value
 ) implements AMF0Type {

@@ -14,7 +14,7 @@ import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake1;
 import co.casterlabs.flv4j.rtmp.handshake.RTMPHandshake2;
 import lombok.RequiredArgsConstructor;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=13
 @RequiredArgsConstructor
 public class RTMPWriter {
     public static final long CONTROL_MSID = 0;
@@ -112,7 +112,7 @@ public class RTMPWriter {
             int fb = 0 << 6 | (csId & 0b00111111);
 
             this.writer.u8(fb);
-            // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+            // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=14
             int ts24 = timestamp;
             long ts32 = 0;
             if (timestamp >= 0xFFFFFF) {
@@ -141,7 +141,7 @@ public class RTMPWriter {
             int fb = 0 << 6 | (csId & 0b00111111);
 
             this.writer.u8(fb);
-            // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
+            // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=14
             int ts24 = timestamp;
             long ts32 = 0;
             if (timestamp >= 0xFFFFFF) {
@@ -170,7 +170,7 @@ public class RTMPWriter {
             int fb = 3 << 6 | (csId & 0b00111111);
             this.writer.u8(fb);
 
-            // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=15
+            // https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=15
             // (reuse all previous values)
 
             this.writer.bytes(bytes, off, len);

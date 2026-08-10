@@ -5,7 +5,7 @@ import java.io.IOException;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/docs/spec/#717user-control-message-events
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=27
 public record RTMPStreamDryControlMessage(long streamId) implements RTMPControlMessageStream {
 
     @Override

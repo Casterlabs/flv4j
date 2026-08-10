@@ -4,7 +4,7 @@ import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.codecs.VideoCodecData;
 
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14
+// https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=14
 public record AVCVideoData(
     ASByteView view,
     AVCPacketData packetData

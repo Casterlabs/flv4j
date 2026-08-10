@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.codecs.video.avc1;
 
 import lombok.AllArgsConstructor;
 
-//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=14
+//https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=14
 @AllArgsConstructor
 public enum AVCPacketType {
     SEQUENCE_HEADER(0),

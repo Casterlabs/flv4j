@@ -7,7 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=8
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=8
 public record RTMPHandshake1(
     long epoch,
     byte[] random

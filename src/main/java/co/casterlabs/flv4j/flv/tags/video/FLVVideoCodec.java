@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.flv.tags.video;
 
 import lombok.AllArgsConstructor;
 
-//https://rtmp.veriskope.com/pdf/video_file_format_spec_v10.pdf#page=13
+//https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=13
 @AllArgsConstructor
 public enum FLVVideoCodec {
     JPEG(1),

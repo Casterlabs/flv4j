@@ -6,7 +6,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=20
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=20
 /**
  * The client or the server MUST send an acknowledgment to the peer after
  * receiving bytes equal to the {@link RTMPMessageWindowAcknowledgementSize}.

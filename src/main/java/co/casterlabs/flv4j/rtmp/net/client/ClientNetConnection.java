@@ -50,7 +50,7 @@ public abstract class ClientNetConnection extends NetConnection {
      * 
      * @implNote      this class only supports amf0 object encoding.
      * 
-     * @see           https://rtmp.veriskope.com/docs/spec/#7211connect
+     * @see           https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=29
      */
     @Override
     public ObjectLike connect(ConnectArgs args) throws IOException, InterruptedException, CallError {
@@ -60,7 +60,7 @@ public abstract class ClientNetConnection extends NetConnection {
     /**
      * @implNote this class only supports amf0 object encoding.
      * 
-     * @see      https://rtmp.veriskope.com/docs/spec/#7211connect
+     * @see      https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=29
      */
     public final ObjectLike connect(ConnectArgs args, ThreadFactory factory) throws IOException, InterruptedException, CallError {
         AtomicBoolean $closed = new AtomicBoolean(false);

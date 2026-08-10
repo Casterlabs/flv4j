@@ -5,8 +5,8 @@ import java.io.IOException;
 import co.casterlabs.flv4j.FLVSerializable;
 import co.casterlabs.flv4j.actionscript.io.ASReader;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=19
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=24
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=19
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=24
 public interface RTMPMessage extends FLVSerializable {
 
     public default boolean isControl() {

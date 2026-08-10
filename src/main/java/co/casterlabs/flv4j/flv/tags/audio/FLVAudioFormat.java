@@ -2,7 +2,7 @@ package co.casterlabs.flv4j.flv.tags.audio;
 
 import lombok.AllArgsConstructor;
 
-// https://rtmp.veriskope.com/pdf/video_file_format_spec_v10_1.pdf#page=76
+// https://veovera.org/docs/legacy/video-file-format-v10-1-spec.pdf#page=76
 @AllArgsConstructor
 public enum FLVAudioFormat {
     LPCM_PLATFORM_ENDIAN(0),

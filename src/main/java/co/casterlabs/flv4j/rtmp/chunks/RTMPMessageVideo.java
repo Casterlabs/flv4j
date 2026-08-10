@@ -6,7 +6,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=26
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=26
 public record RTMPMessageVideo(FLVVideoTagData payload) implements RTMPMessage {
 
     @Override

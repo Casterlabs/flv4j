@@ -50,7 +50,7 @@ public interface AMF0Type extends FLVSerializable {
         return (T) type.parser.parse(reader);
     }
 
-    // https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=4
+    // https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=4
     @AllArgsConstructor
     public enum Type {
         // @formatter:off

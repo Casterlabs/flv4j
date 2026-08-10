@@ -1,6 +1,6 @@
 package co.casterlabs.flv4j.rtmp.chunks;
 
-// https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=13
+// https://veovera.org/docs/legacy/rtmp-v1-0-spec.pdf#page=13
 public record RTMPChunk<M extends RTMPMessage>(
     int timestamp,
     int chunkStreamId,

@@ -7,7 +7,7 @@ import co.casterlabs.flv4j.actionscript.io.ASReader;
 import co.casterlabs.flv4j.actionscript.io.ASSizer;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 
-// https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6
+// https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=6
 /**
  * {@link #index()} is a pointer to a complex object. A complex object is
  * defined as an Object, TypedObject, StrictArray, or ECMAArray. You can check
@@ -16,7 +16,7 @@ import co.casterlabs.flv4j.actionscript.io.ASWriter;
  * 0. Each subsequent complex object is stored at the next index.
  * 
  * @see <a href=
- *      "https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf#page=6">AMF0
+ *      "https://veovera.org/docs/legacy/amf0-file-format-spec.pdf#page=6">AMF0
  *      File Format Specification</a>
  */
 public record Reference0(
