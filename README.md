@@ -58,7 +58,9 @@ Our in-house library for FLV, RTMP and AMF.
   - ➖ Codec/Format Structures
     - ➖ Standard H264
     - ➖ Non-Standard HEVC (codec 12)
-    - ❌ Enhanced Codec/Format Structures
+    - ➖ Enhanced
+	  - ➖ H264
+	  - ➖ HEVC
 
 ### RTMP
 

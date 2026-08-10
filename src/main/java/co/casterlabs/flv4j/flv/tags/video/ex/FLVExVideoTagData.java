@@ -10,6 +10,8 @@ import co.casterlabs.flv4j.FourCC;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.codecs.VideoCodecData;
+import co.casterlabs.flv4j.codecs.video.avc1.AVCExVideoData;
+import co.casterlabs.flv4j.codecs.video.hvc1.HEVCExVideoData;
 import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -146,25 +148,12 @@ public record FLVExVideoTagData(
                 writer.u8(track.id());
 
                 if (rawMultitrackType != FLVExVideoMultitrackType.ONE_TRACK.id) {
-                    int trackSize = track.data().view().length();
-
-                    // CodedFrames for AVC/HEVC/VVC contains the SI24 composition time offset as
-                    // part of the track body.
-                    if (rawType == FLVExVideoPacketType.CODED_FRAMES.id &&
-                        requiresCompositionTimeOffset(track.codec())) {
-                        trackSize += 3;
-                    }
-
-                    writer.u24(trackSize);
+                    // NB: We shove the CTS in with the video data, NOT the track header.
+                    writer.u24(track.data().view().length());
                 }
             }
 
-            // The composition time offset is part of the coded-frame body for AVC, HEVC and
-            // VVC. CodedFramesX explicitly omits it and implies zero.
-            if (rawType == FLVExVideoPacketType.CODED_FRAMES.id &&
-                requiresCompositionTimeOffset(track.codec())) {
-                writer.s24(track.compositionTimeOffset());
-            }
+            // NB: We shove the CTS in with the video data, NOT the track header.
 
             writer.bytes(track.data().view());
         }
@@ -256,25 +245,22 @@ public record FLVExVideoTagData(
                 }
             }
 
-            // CODED_FRAMES includes a CTS field for AVC, HEVC and VVC.
-            // CODED_FRAMES_X omits this field and therefore implies zero.
-            int compositionTimeOffset = 0;
-            if (rawVideoPacketType == FLVExVideoPacketType.CODED_FRAMES.id && requiresCompositionTimeOffset(codec)) {
-                compositionTimeOffset = data.s24(offset);
-                offset += 3;
-                sizeOfVideoTrack -= 3;
-            }
+            // NB: We shove the CTS in with the video data, NOT the track header.
 
             ASByteView trackDataView = data.slice(offset, sizeOfVideoTrack);
             FLVExVideoCodecData trackData;
 
             trackData = switch (codec.string()) {
-                // TODO
+                case "avc1" -> new AVCExVideoData(rawVideoPacketType, trackDataView);
+                case "hvc1" -> new HEVCExVideoData(rawVideoPacketType, trackDataView);
+
+                // TODO vp08, vp09, av01, vvc1 are defined by the spec.
+
                 default -> new VideoCodecData.Invalid(trackDataView);
             };
             offset += sizeOfVideoTrack;
 
-            tracks.add(new FLVExVideoTrack(codec, videoTrackId, compositionTimeOffset, trackData));
+            tracks.add(new FLVExVideoTrack(codec, videoTrackId, trackData));
         }
 
         return new FLVExVideoTagData(
@@ -284,13 +270,6 @@ public record FLVExVideoTagData(
             modifiers.toArray(new FLVExVideoModifier[0]),
             tracks.toArray(new FLVExVideoTrack[0])
         );
-    }
-
-    private static boolean requiresCompositionTimeOffset(FourCC codec) {
-        return switch (codec.string()) {
-            case "avc1", "hvc1", "vvc1" -> true;
-            default -> false;
-        };
     }
 
     @Override
