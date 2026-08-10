@@ -52,7 +52,7 @@ public abstract class ServerNetStream extends NetStream {
 
                 double duration = -1; // default value per spec
                 if (args.length > 3) {
-                    start = ((Number0) args[3]).value();
+                    duration = ((Number0) args[3]).value();
                 }
 
                 boolean reset = true;
