@@ -36,24 +36,35 @@ Our in-house library for FLV, RTMP and AMF.
     - ✅ Sample Rate
     - ✅ Sample Size
     - ✅ Audio Channels
-  - ✅ [Enhanced Header](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
+  - ✅ [Enhanced Header](https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio)
     - ✅ Type
     - ✅ Modifiers
     - ✅ Multitrack
-  - ❌ Codec/Format Structures
+  - ➖ Codec/Format Structures
+    - ➖ Standard AAC
+    - ❌ Enhanced Codec/Format Structures
 - ✅ Script Tag (AMF)
 - ➖ Video Tag
   - ✅ Header
     - ✅ Frame Type
     - ✅ Codec
-  - ❌ [Enhanced Header](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
-  - ❌ Codec Structures
+      - ✅ Non-Standard REALH263 (codec 8)
+      - ✅ Non-Standard MPEG4 (codec 9)
+      - ✅ Non-Standard HEVC (codec 12)
+  - ✅ [Enhanced Header](https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-video)
+    - ✅ Type
+    - ✅ Modifiers
+    - ✅ Multitrack
+  - ➖ Codec/Format Structures
+    - ➖ Standard H264
+    - ➖ Non-Standard HEVC (codec 12)
+    - ❌ Enhanced Codec/Format Structures
 
 ### RTMP
 
 - ✅ Handshake
 - ✅ Chunk Streams
-- ❓ [Enhanced](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
+- ✅ [Enhanced](https://veovera.org/docs/enhanced/enhanced-rtmp-v2)
 
 ## Relevant specs
 
