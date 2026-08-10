@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,7 @@ public abstract class ClientNetConnection extends NetConnection {
      * @see      https://rtmp.veriskope.com/docs/spec/#7211connect
      */
     public final ObjectLike connect(ConnectArgs args, ThreadFactory factory) throws IOException, InterruptedException, CallError {
-        boolean[] $closed = new boolean[1];
+        AtomicBoolean $closed = new AtomicBoolean(false);
         try {
             if (args.objectEncoding() != 0) {
                 throw new IllegalArgumentException("Only amf0 object encoding is supported.");
@@ -79,13 +80,11 @@ public abstract class ClientNetConnection extends NetConnection {
                 try {
                     this.conn.run();
 
-                    if (!$closed[0]) {
-                        $closed[0] = true;
+                    if ($closed.compareAndSet(false, true)) {
                         this.onClose(null);
                     }
                 } catch (Throwable t) {
-                    if (!$closed[0]) {
-                        $closed[0] = true;
+                    if ($closed.compareAndSet(false, true)) {
                         this.onClose(t);
                     }
                 }
@@ -98,8 +97,7 @@ public abstract class ClientNetConnection extends NetConnection {
                 })
                 .await();
         } catch (IOException | InterruptedException | CallError e) {
-            if (!$closed[0]) {
-                $closed[0] = true;
+            if ($closed.compareAndSet(false, true)) {
                 this.onClose(e);
             }
             throw e;
