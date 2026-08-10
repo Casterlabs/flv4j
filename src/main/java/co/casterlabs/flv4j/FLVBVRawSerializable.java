@@ -16,7 +16,7 @@ public interface FLVBVRawSerializable extends FLVSerializable {
 
     @Override
     default int size() {
-        return this.raw().length;
+        return this.view().length();
     }
 
     @Override
