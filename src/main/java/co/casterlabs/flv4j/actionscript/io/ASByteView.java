@@ -47,6 +47,10 @@ public record ASByteView(byte[] buffer, int offset, int length) {
             | u8(index + 2);
     }
 
+    public int s24(int index) {
+        return (u24(index) << 8) >> 8; // Sign extend
+    }
+
     public int u29(int index) {
         int b1 = u8(index + 0);
         int result = b1 & 0x7F;

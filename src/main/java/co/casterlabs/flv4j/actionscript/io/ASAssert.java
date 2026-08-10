@@ -30,6 +30,10 @@ public class ASAssert {
         assert value >= 0 && value <= 0xFFFFFF : name + " must be between 0 and 16777215";
     }
 
+    public static void s24(int value, String name) {
+        assert value >= -8388608 && value <= 8388607 : name + " must be between -8388608 and 8388607";
+    }
+
     public static void u29(int value, String name) {
         assert value >= 0 && value <= 536870911 : name + " must be between 0 and 536870911";
     }

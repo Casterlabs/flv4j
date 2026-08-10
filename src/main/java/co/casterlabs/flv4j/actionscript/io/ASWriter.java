@@ -42,6 +42,13 @@ public record ASWriter(
         out.write(value & 0xFF);
     }
 
+    public void s24(int value) throws IOException {
+        ASAssert.s24(value, "value");
+        out.write(value >> 16 & 0xFF);
+        out.write(value >> 8 & 0xFF);
+        out.write(value & 0xFF);
+    }
+
     public void u29(int value) throws IOException {
         ASAssert.u29(value, "value");
         // We could use a loop here, but we might as well unroll it.
