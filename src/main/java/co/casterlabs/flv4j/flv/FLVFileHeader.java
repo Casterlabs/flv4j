@@ -64,7 +64,7 @@ public record FLVFileHeader(
         int flags = reader.u8();
 
         int headerSize = (int) reader.u32();
-        byte[] expandedHeaderData = reader.bytes(9 - headerSize);
+        byte[] expandedHeaderData = reader.bytes(headerSize - 9);
 
         return new FLVFileHeader(version, flags, expandedHeaderData);
     }
