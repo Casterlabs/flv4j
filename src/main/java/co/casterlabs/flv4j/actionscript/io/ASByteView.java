@@ -159,7 +159,7 @@ public record ASByteView(byte[] buffer, int offset, int length) {
     @Override
     public int hashCode() {
         int result = 1;
-        for (int i = offset; i < this.length; i++) {
+        for (int i = 0; i < this.length; i++) {
             result = 31 * result + this.u8(i);
         }
         return result;
