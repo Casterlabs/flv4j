@@ -2,8 +2,8 @@ package co.casterlabs.flv4j.rtmp.net;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ public class RTMPConnection {
     private static final String0 _RESULT = new String0("_result");
     private static final String0 _ERROR = new String0("_error");
 
-    private final Map<Integer, RPCPromise.Handle<AMF0Type[]>> rpcFutures = new HashMap<>();
+    private final Map<Integer, RPCPromise.Handle<AMF0Type[]>> rpcFutures = new ConcurrentHashMap<>();
     private final AtomicInteger currTsId = new AtomicInteger(1); // 0 is reserved for void calls.
 
     private final RTMPReader in;

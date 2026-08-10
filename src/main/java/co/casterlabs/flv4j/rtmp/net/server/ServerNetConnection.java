@@ -2,9 +2,9 @@ package co.casterlabs.flv4j.rtmp.net.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,8 +42,8 @@ public abstract class ServerNetConnection extends NetConnection {
 
     final RTMPConnection conn;
 
-    private AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved for control.
-    Map<Integer, ServerNetStream> streams = new HashMap<>();
+    private final AtomicInteger currStreamId = new AtomicInteger(1); // 0 is reserved for control.
+    final Map<Integer, ServerNetStream> streams = new ConcurrentHashMap<>();
 
     private long latency = -1;
 
