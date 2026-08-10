@@ -117,7 +117,7 @@ public class RTMPWriter {
             long ts32 = 0;
             if (timestamp >= 0xFFFFFF) {
                 ts24 = 0xFFFFFF;
-                ts32 = timestamp % 0xFFFFFFFF;
+                ts32 = timestamp & 0xFFFFFFFFL;
             }
 
             this.writer.u24(ts24);
@@ -142,12 +142,21 @@ public class RTMPWriter {
 
             this.writer.u8(fb);
             // https://rtmp.veriskope.com/pdf/rtmp_specification_1.0.pdf#page=14
-            int now = timestamp % 0xFFFFFF;
+            int ts24 = timestamp;
+            long ts32 = 0;
+            if (timestamp >= 0xFFFFFF) {
+                ts24 = 0xFFFFFF;
+                ts32 = timestamp & 0xFFFFFFFFL;
+            }
 
-            this.writer.u24(now);
+            this.writer.u24(ts24);
             this.writer.u24(messageLength);
             this.writer.u8(messageTypeId);
             this.writer.u32le(msId);
+
+            if (ts24 == 0xFFFFFF) {
+                this.writer.u32(ts32);
+            }
 
             ser.serialize(this.writer);
         } finally {
