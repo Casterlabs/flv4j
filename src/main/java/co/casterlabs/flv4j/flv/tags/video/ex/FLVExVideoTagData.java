@@ -40,7 +40,9 @@ public record FLVExVideoTagData(
 
     @Override
     public boolean isSequenceHeader() {
-        return this.rawType == FLVExVideoPacketType.SEQUENCE_START.id;
+        return this.rawType == FLVExVideoPacketType.SEQUENCE_START.id ||
+            this.rawType == FLVExVideoPacketType.MPEG2TS_SEQUENCE_START.id ||
+            this.rawType == FLVExVideoPacketType.METADATA.id;
     }
 
     public static FLVExVideoTagData from(
