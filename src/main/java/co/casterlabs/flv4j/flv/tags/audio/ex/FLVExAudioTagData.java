@@ -10,6 +10,11 @@ import co.casterlabs.flv4j.FourCC;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.codecs.AudioCodecData;
+import co.casterlabs.flv4j.codecs.audio.aac.AACExAudioData;
+import co.casterlabs.flv4j.codecs.audio.flac.FLACExAudioData;
+import co.casterlabs.flv4j.codecs.audio.mp3.MP3ExAudioData;
+import co.casterlabs.flv4j.codecs.audio.opus.OpusExAudioData;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 import co.casterlabs.flv4j.flv.tags.audio.FLVAudioTagData;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -36,11 +41,13 @@ public record FLVExAudioTagData(
         return this.rawType == FLVExAudioPacketType.SEQUENCE_START.id;
     }
 
+    @CreatesCopy
     public static FLVExAudioTagData from(@NonNull FLVExAudioPacketType type, FLVExAudioModifier[] modifiers, FLVExAudioTrack... tracks) {
         return from(type.id, modifiers, tracks);
     }
 
     @SneakyThrows
+    @CreatesCopy
     public static FLVExAudioTagData from(int rawType, @NonNull FLVExAudioModifier[] modifiers, @NonNull FLVExAudioTrack... tracks) {
         assert tracks.length > 0 : "At least one track must be provided.";
 
@@ -212,6 +219,10 @@ public record FLVExAudioTagData(
                 trackData = FLVExAudioChannelConfig.from(trackDataView);
             } else {
                 trackData = switch (codec.string()) {
+                    case "fLaC" -> new FLACExAudioData(rawAudioPacketType, trackDataView);
+                    case "Opus" -> new OpusExAudioData(rawAudioPacketType, trackDataView);
+                    case "mp4a" -> new AACExAudioData(rawAudioPacketType, trackDataView);
+                    case ".mp3" -> new MP3ExAudioData(trackDataView);
                     // TODO
                     default -> new AudioCodecData.Invalid(trackDataView);
                 };

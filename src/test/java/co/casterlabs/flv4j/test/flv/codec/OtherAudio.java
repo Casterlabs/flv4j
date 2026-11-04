@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.test.flv;
+package co.casterlabs.flv4j.test.flv.codec;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,8 +13,10 @@ import co.casterlabs.flv4j.flv.tags.audio.FLVAudioFormat;
 import co.casterlabs.flv4j.flv.tags.audio.FLVStandardAudioTagData;
 import co.casterlabs.flv4j.flv.tags.audio.ex.FLVExAudioTagData;
 import co.casterlabs.flv4j.flv.tags.audio.ex.FLVExAudioTrack;
+import co.casterlabs.flv4j.test.Media;
 
-public class FLVAudio {
+//Codecs that we don't have in-depth tests for.
+public class OtherAudio {
 
     private void audioTest(String name, FLVAudioFormat expectedCodec) throws IOException {
         boolean[] foundTag = {
@@ -35,7 +37,7 @@ public class FLVAudio {
 
             @Override
             protected void onEnd() {}
-        }.start(_Media.stream(name));
+        }.start(Media.stream(name));
 
         assertTrue(foundTag[0], "Did not find any audio tags in " + name);
     }
@@ -61,14 +63,9 @@ public class FLVAudio {
 
             @Override
             protected void onEnd() {}
-        }.start(_Media.stream(name));
+        }.start(Media.stream(name));
 
         assertTrue(foundTag[0], "Did not find any audio tags in " + name);
-    }
-
-    @Test
-    public void standard_AAC() throws IOException {
-        audioTest("standard/audio/aac", FLVAudioFormat.AAC);
     }
 
     @Test
@@ -89,11 +86,6 @@ public class FLVAudio {
     @Test
     public void standard_LPCM_LE() throws IOException {
         audioTest("standard/audio/lpcm_le", FLVAudioFormat.LPCM_LE);
-    }
-
-    @Test
-    public void standard_mp3() throws IOException {
-        audioTest("standard/audio/mp3", FLVAudioFormat.MP3);
     }
 
     @Test
@@ -129,16 +121,6 @@ public class FLVAudio {
     @Test
     public void veovera_EAC3() throws IOException {
         audioTest("veovera/audio/ec-3", "ec-3");
-    }
-
-    @Test
-    public void veovera_Flac() throws IOException {
-        audioTest("veovera/audio/fLaC", "fLaC");
-    }
-
-    @Test
-    public void veovera_Opus() throws IOException {
-        audioTest("veovera/audio/Opus", "Opus");
     }
 
 }

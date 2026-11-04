@@ -1,5 +1,9 @@
 package co.casterlabs.flv4j.codecs.video.hvc1;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 
 // https://ossrs.io/lts/zh-cn/assets/files/ISO_IEC_14496-15-AVC-format-2017-e51a22786929a5fbc2f9dc9fc4761e09.pdf#page=78
@@ -77,12 +81,63 @@ public record HEVCDecoderConfigurationRecord(ASByteView view) implements HEVCPac
         return this.view.u8(22);
     }
 
-    // TODO nalus
+    public HEVCNaluType[] naluArrayTypes() {
+        HEVCNaluType[] types = new HEVCNaluType[this.numOfArrays()];
+        int offset = 23; // Fixed header size
+        for (int i = 0; i < types.length; i++) {
+            types[i] = HEVCNaluType.LUT[this.view.u8(offset) & 0b111111];
+            int numNalus = this.view.u16(offset + 1);
+            offset += 3;
+            for (int j = 0; j < numNalus; j++) {
+                int naluLength = this.view.u16(offset);
+                offset += 2 + naluLength;
+            }
+        }
+        return types;
+    }
+
+    public HEVCNalu[][] naluArrays() {
+        HEVCNalu[][] arrays = new HEVCNalu[this.numOfArrays()][];
+        int offset = 23; // Fixed header size
+        for (int i = 0; i < arrays.length; i++) {
+            offset++; // [array_completeness:1|nal_unit_type:7]
+            int numNalus = this.view.u16(offset);
+            offset += 2;
+
+            HEVCNalu[] nalus = arrays[i] = new HEVCNalu[numNalus];
+            for (int j = 0; j < nalus.length; j++) {
+                int naluLength = this.view.u16(offset);
+                offset += 2;
+                nalus[j] = new HEVCNalu(this.view.slice(offset, naluLength));
+                offset += naluLength;
+            }
+        }
+        return arrays;
+    }
+
+    public HEVCNalu[] nalus(HEVCNaluType type) {
+        List<HEVCNalu> nalus = new ArrayList<>();
+        int offset = 23; // Fixed header size
+        for (int i = 0; i < this.numOfArrays(); i++) {
+            HEVCNaluType arrayType = HEVCNaluType.LUT[this.view.u8(offset) & 0b111111];
+            int numNalus = this.view.u16(offset + 1);
+            offset += 3;
+            for (int j = 0; j < numNalus; j++) {
+                int naluLength = this.view.u16(offset);
+                offset += 2;
+                if (arrayType == type) {
+                    nalus.add(new HEVCNalu(this.view.slice(offset, naluLength)));
+                }
+                offset += naluLength;
+            }
+        }
+        return nalus.toArray(new HEVCNalu[0]);
+    }
 
     @Override
     public String toString() {
         return String.format(
-            "HEVCDecoderConfigurationRecord{configurationVersion=%d, generalProfileSpace=%d, generalTierFlag=%b, generalProfileIdc=%d, generalProfileCompatibilityFlags=%d, generalConstraintIndicatorFlags=%d, generalLevelIdc=%d, minSpatialSegmentationIdc=%d, parallelismType=%d, chromaFormat=%d, bitDepthLumaMinus8=%d, bitDepthChromaMinus8=%d, avgFrameRate=%d, constantFrameRate=%d, numTemporalLayers=%d, temporalIdNested=%b, lengthSizeMinusOne=%d, numOfArrays=%d}",
+            "HEVCDecoderConfigurationRecord{configurationVersion=%d, generalProfileSpace=%d, generalTierFlag=%b, generalProfileIdc=%d, generalProfileCompatibilityFlags=%d, generalConstraintIndicatorFlags=%d, generalLevelIdc=%d, minSpatialSegmentationIdc=%d, parallelismType=%d, chromaFormat=%d, bitDepthLumaMinus8=%d, bitDepthChromaMinus8=%d, avgFrameRate=%d, constantFrameRate=%d, numTemporalLayers=%d, temporalIdNested=%b, lengthSizeMinusOne=%d, numOfArrays=%d, naluArrays=%s}",
             this.configurationVersion(),
             this.generalProfileSpace(),
             this.generalTierFlag(),
@@ -100,7 +155,8 @@ public record HEVCDecoderConfigurationRecord(ASByteView view) implements HEVCPac
             this.numTemporalLayers(),
             this.temporalIdNested(),
             this.lengthSizeMinusOne(),
-            this.numOfArrays()
+            this.numOfArrays(),
+            Arrays.deepToString(this.naluArrays())
         );
     }
 

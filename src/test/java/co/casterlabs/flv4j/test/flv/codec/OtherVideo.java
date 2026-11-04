@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.test.flv;
+package co.casterlabs.flv4j.test.flv.codec;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,8 +11,10 @@ import co.casterlabs.flv4j.flv.muxing.NonSeekableFLVDemuxer;
 import co.casterlabs.flv4j.flv.tags.FLVTag;
 import co.casterlabs.flv4j.flv.tags.video.FLVStandardVideoTagData;
 import co.casterlabs.flv4j.flv.tags.video.FLVVideoCodec;
+import co.casterlabs.flv4j.test.Media;
 
-public class FLVVideo {
+// Codecs that we don't have in-depth tests for.
+public class OtherVideo {
 
     private void videoTest(String name, FLVVideoCodec expectedCodec) throws IOException {
         boolean[] foundTag = {
@@ -33,14 +35,9 @@ public class FLVVideo {
 
             @Override
             protected void onEnd() {}
-        }.start(_Media.stream(name));
+        }.start(Media.stream(name));
 
         assertTrue(foundTag[0], "Did not find any video tags in " + name);
-    }
-
-    @Test
-    public void standard_H264() throws IOException {
-        videoTest("standard/video/h264", FLVVideoCodec.H264);
     }
 
     @Test
@@ -61,11 +58,6 @@ public class FLVVideo {
     @Test
     public void standard_SorensonH263() throws IOException {
         videoTest("standard/video/sorenson_h263", FLVVideoCodec.SORENSON_H263);
-    }
-
-    @Test
-    public void nonstandard_HEVC() throws IOException {
-        videoTest("nonstandard/video/hevc", FLVVideoCodec.NS_HEVC);
     }
 
     @Test

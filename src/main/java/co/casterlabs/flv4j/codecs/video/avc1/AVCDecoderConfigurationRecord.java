@@ -4,9 +4,12 @@ import java.util.Arrays;
 
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 
+// https://ossrs.io/lts/zh-cn/assets/files/ISO_IEC_14496-15-AVC-format-2017-e51a22786929a5fbc2f9dc9fc4761e09.pdf#page=26
 public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacketData {
 
+    @CreatesCopy
     public static AVCDecoderConfigurationRecord from(int configurationVersion, int profileIndication, int profileCompatibility, int levelIndication, int lengthSizeMinusOne, AVCNalu[] sps, AVCNalu[] pps) {
         ASAssert.u8(configurationVersion, "configurationVersion");
         ASAssert.u8(profileIndication, "profileIndication");
@@ -18,9 +21,11 @@ public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacke
 
         int requiredLength = 6; // Fixed header size
         for (AVCNalu nal : sps) {
+            ASAssert.u16(nal.view().length(), "sps[].length");
             requiredLength += 2 + nal.view().length(); // 2 bytes for length prefix
         }
         for (AVCNalu nal : pps) {
+            ASAssert.u16(nal.view().length(), "pps[].length");
             requiredLength += 2 + nal.view().length(); // 2 bytes for length prefix
         }
 

@@ -4,9 +4,10 @@ import co.casterlabs.flv4j.FLVBVRawSerializable;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.codecs.AudioCodecData;
 import co.casterlabs.flv4j.codecs.audio.aac.AACAudioData;
+import co.casterlabs.flv4j.codecs.audio.mp3.MP3AudioData;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 // https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=10
-// https://veovera.org/docs/enhanced/enhanced-rtmp-v2#enhanced-audio
 public record FLVStandardAudioTagData(
     ASByteView view,
     AudioCodecData data
@@ -16,16 +17,19 @@ public record FLVStandardAudioTagData(
         this(
             view,
             switch (view.u8(0) >> 4 & 0b1111) {
+                case 2 -> new MP3AudioData(view.slice(1));
                 case 10 -> new AACAudioData(view.slice(1));
                 default -> new AudioCodecData.Invalid(view.slice(1));
             }
         );
     }
 
+    @CreatesCopy
     public static FLVStandardAudioTagData from(FLVAudioFormat format, FLVAudioRate rate, FLVAudioSampleSize sampleSize, FLVAudioChannels channels, AudioCodecData data) {
         return from(format.id, rate.id, sampleSize.id, channels.id, data);
     }
 
+    @CreatesCopy
     public static FLVStandardAudioTagData from(int rawFormat, int rawRate, int rawSampleSize, int rawChannels, AudioCodecData audioData) {
         ASByteView dataView = audioData.view();
 
@@ -79,8 +83,8 @@ public record FLVStandardAudioTagData(
             this.rate(), this.view.u8(0) >> 2 & 0b11,
             this.sampleSize(), this.view.u8(0) >> 1 & 0b1,
             this.channels(), this.view.u8(0) & 0b1,
-            this.data,
-            this.isSequenceHeader()
+            this.isSequenceHeader(),
+            this.data
         );
     }
 

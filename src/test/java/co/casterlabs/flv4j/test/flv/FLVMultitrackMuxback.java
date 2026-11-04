@@ -12,6 +12,7 @@ import co.casterlabs.flv4j.flv.muxing.NonSeekableFLVDemuxer;
 import co.casterlabs.flv4j.flv.tags.FLVTag;
 import co.casterlabs.flv4j.flv.tags.FLVTagType;
 import co.casterlabs.flv4j.flv.tags.audio.ex.FLVExAudioTagData;
+import co.casterlabs.flv4j.test.Media;
 import lombok.SneakyThrows;
 
 public class FLVMultitrackMuxback {
@@ -50,7 +51,7 @@ public class FLVMultitrackMuxback {
 
             @Override
             protected void onEnd() {}
-        }.start(_Media.stream("veovera/audio/Opus"));
+        }.start(Media.stream("veovera/audio/Opus"));
     }
 
 }

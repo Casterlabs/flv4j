@@ -10,8 +10,11 @@ import co.casterlabs.flv4j.FourCC;
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.actionscript.io.ASWriter;
 import co.casterlabs.flv4j.codecs.VideoCodecData;
+import co.casterlabs.flv4j.codecs.video.av01.AV1ExVideoData;
 import co.casterlabs.flv4j.codecs.video.avc1.AVCExVideoData;
 import co.casterlabs.flv4j.codecs.video.hvc1.HEVCExVideoData;
+import co.casterlabs.flv4j.codecs.video.vpx.VPExVideoData;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 import co.casterlabs.flv4j.flv.tags.video.FLVVideoTagData;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -45,6 +48,7 @@ public record FLVExVideoTagData(
             this.rawType == FLVExVideoPacketType.METADATA.id;
     }
 
+    @CreatesCopy
     public static FLVExVideoTagData from(
         @NonNull FLVExVideoFrameType frameType,
         @NonNull FLVExVideoPacketType type,
@@ -55,6 +59,7 @@ public record FLVExVideoTagData(
     }
 
     @SneakyThrows
+    @CreatesCopy
     public static FLVExVideoTagData from(
         int rawFrameType,
         int rawType,
@@ -255,9 +260,9 @@ public record FLVExVideoTagData(
             trackData = switch (codec.string()) {
                 case "avc1" -> new AVCExVideoData(rawVideoPacketType, trackDataView);
                 case "hvc1" -> new HEVCExVideoData(rawVideoPacketType, trackDataView);
-
-                // TODO vp08, vp09, av01, vvc1 are defined by the spec.
-
+                case "vp08", "vp09" -> new VPExVideoData(rawVideoPacketType, trackDataView);
+                case "av01" -> new AV1ExVideoData(rawVideoPacketType, trackDataView);
+                // TODO
                 default -> new VideoCodecData.Invalid(trackDataView);
             };
             offset += sizeOfVideoTrack;

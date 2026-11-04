@@ -1,10 +1,11 @@
 package co.casterlabs.flv4j.codecs.video.avc1;
 
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 public record AVCNalu(ASByteView view) {
 
-    public AVCNalu from(byte[] data) {
+    public static AVCNalu from(byte[] data) {
         return new AVCNalu(new ASByteView(data));
     }
 
@@ -20,9 +21,29 @@ public record AVCNalu(ASByteView view) {
         return this.nalRefIdc() == 0;
     }
 
+    public int rawType() {
+        return this.view.u8(0) & 0b11111;
+    }
+
     public AVCNaluType type() {
-        int rawType = this.view.u8(0) & 0b11111;
-        return AVCNaluType.LUT[rawType];
+        return AVCNaluType.LUT[this.rawType()];
+    }
+
+    @CreatesCopy
+    public ASByteView rbsp() {
+        byte[] out = new byte[this.view.length()];
+        int written = 0;
+        int zeros = 0;
+        for (int i = 1; i < this.view.length(); i++) { // Start at 1 to skip the NAL header.
+            byte b = this.view.buffer()[i + this.view.offset()];
+            if (zeros >= 2 && b == 0x03) {
+                zeros = 0; // Drop the emulation_prevention_three_byte
+                continue;
+            }
+            out[written++] = b;
+            zeros = (b == 0) ? zeros + 1 : 0;
+        }
+        return new ASByteView(out, 0, written);
     }
 
     @Override
@@ -31,7 +52,7 @@ public record AVCNalu(ASByteView view) {
             "AVCNalu[fbz=%d, nalRefIdc=%s (%d), type=%s (%d), size=%d]",
             this.fbz(),
             this.discardable() ? "DISCARDABLE" : "IMPORTANT", this.nalRefIdc(),
-            this.type(), this.view.u8(0) & 0b11111,
+            this.type(), this.rawType(),
             this.view.length()
         );
     }

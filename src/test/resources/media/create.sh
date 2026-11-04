@@ -43,12 +43,15 @@ rm -rf ./nonstandard
 mkdir -p ./nonstandard/video
 mkdir -p ./nonstandard/audio
 
-cp "./sources/HEVC-1-codecid_12.flv" "./nonstandard/video/hevc.flv"
+# Codec 12 HEVC: current ffmpeg writes the enhanced (eFLV) variant instead of the legacy
+# codec 12 form, so we encode that (libx265 needs -strict 0) and convert it with
+# ConvertExHevcToCodec12 (in the test tree):
+#   use_ffmpeg -an -c libx265 -strict 0 -f flv "./nonstandard/video/hevc-ex.flv" -y
+#   java ConvertExHevcToCodec12 "./nonstandard/video/hevc-ex.flv" "./nonstandard/video/hevc.flv"
 
 # 	Video
 use_ffmpeg -an -c h263 -strict -1 -vf scale=352:288 -f flv "./nonstandard/video/realh263.flv" -y
 use_ffmpeg -an -c mpeg4 -strict -1 -f flv "./nonstandard/video/mpeg4.flv" -y
-# use_ffmpeg -an -c hevc -strict -1 -f flv "./nonstandard/video/hevc.flv" -y # Can't actually get ffmpeg to produce this :(
 
 
 # ------------------
@@ -62,6 +65,11 @@ mkdir -p ./veovera/audio
 use_ffmpeg -an -c hevc -strict -1 -f flv "./veovera/video/hvc1.flv" -y
 use_ffmpeg -an -c librav1e -strict -1 -f flv "./veovera/video/av01.flv" -y
 use_ffmpeg -an -c vp9 -strict -1 -f flv "./veovera/video/vp09.flv" -y
+
+# VP8: ffmpeg cannot write vp08 to FLV, and libvpx writes no CodecPrivate into the
+# webm, so encode a webm and convert it (ConvertVp8WebmToFlv synthesizes the 12B vpcc):
+#   use_ffmpeg -an -c libvpx -f webm "./veovera/video/vp08-src.webm" -y
+#   java ConvertVp8WebmToFlv "./veovera/video/vp08-src.webm" "./veovera/video/vp08.flv"
 
 # 	Audio
 use_ffmpeg -vn -c libopus -strict -1 -f flv "./veovera/audio/Opus.flv" -y

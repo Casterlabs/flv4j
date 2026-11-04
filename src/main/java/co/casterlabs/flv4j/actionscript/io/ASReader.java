@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import co.casterlabs.commons.io.streams.LimitedInputStream;
 import co.casterlabs.flv4j.EndOfStreamException;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public abstract class ASReader {
 
     public abstract int bytesRead();
 
+    @CreatesCopy
     public abstract byte[] bytes(int len) throws IOException;
 
     public abstract int u8() throws IOException;
@@ -93,12 +95,14 @@ public abstract class ASReader {
         return Double.longBitsToDouble(bits);
     }
 
+    @CreatesCopy
     public final ByteString utf8() throws IOException {
         int len = u16();
         byte[] bytes = bytes(len);
         return new ByteString(bytes);
     }
 
+    @CreatesCopy
     public final ByteString utf8long() throws IOException {
         int len = (int) u32();
         byte[] bytes = bytes(len);
@@ -126,6 +130,7 @@ class StreamASReader extends ASReader {
     private @Getter int bytesRead = 0;
 
     @Override
+    @CreatesCopy
     public byte[] bytes(int len) throws IOException {
         byte[] buf = new byte[len];
         int total = 0;
@@ -164,6 +169,7 @@ class ByteArrayASReader extends ASReader {
     private @Getter int bytesRead;
 
     @Override
+    @CreatesCopy
     public byte[] bytes(int len) throws IOException {
         if (this.bytesRead + len > this.length) {
             throw new EndOfStreamException("End of stream");

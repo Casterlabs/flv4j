@@ -41,13 +41,19 @@ Our in-house library for FLV, RTMP and AMF.
     - ✅ Modifiers
     - ✅ Multitrack
   - ➖ Codec/Format Structures
-    - ➖ Standard AAC
-    - ❌ Enhanced Codec/Format Structures
+    - ✅ Standard AAC (AudioSpecificConfig)
+    - ✅ Standard MP3 (frame headers)
+    - ➖ Enhanced Codec/Format Structures
+      - ✅ Opus (OpusHead)
+      - ✅ FLAC (STREAMINFO)
+      - ❌ AC-3
+      - ❌ E-AC-3
 - ✅ Script Tag (AMF)
-- ➖ Video Tag
+- ✅ Video Tag
   - ✅ Header
     - ✅ Frame Type
     - ✅ Codec
+      - ✅ H264 (codec 7)
       - ✅ Non-Standard REALH263 (codec 8)
       - ✅ Non-Standard MPEG4 (codec 9)
       - ✅ Non-Standard HEVC (codec 12)
@@ -55,12 +61,18 @@ Our in-house library for FLV, RTMP and AMF.
     - ✅ Type
     - ✅ Modifiers
     - ✅ Multitrack
-  - ➖ Codec/Format Structures
-    - ➖ Standard H264
-    - ➖ Non-Standard HEVC (codec 12)
-    - ➖ Enhanced
-	  - ➖ H264
-	  - ➖ HEVC
+  - ✅ Codec/Format Structures
+    - ✅ Standard H264
+    - ✅ Non-Standard HEVC (codec 12)
+    - ✅ Enhanced
+      - ✅ H264
+      - ✅ VP8
+      - ✅ VP9
+      - ✅ HEVC
+      - ✅ AV1
+      - ❌ VVC
+  - ✅ H264
+  - ✅ HEVC
 
 ### RTMP
 

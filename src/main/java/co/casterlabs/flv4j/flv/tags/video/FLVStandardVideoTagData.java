@@ -5,6 +5,7 @@ import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.codecs.VideoCodecData;
 import co.casterlabs.flv4j.codecs.video.avc1.AVCVideoData;
 import co.casterlabs.flv4j.codecs.video.hvc1.HEVCVideoData;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 // https://veovera.org/docs/legacy/video-file-format-v10-0-spec.pdf#page=13
 // https://veovera.org/docs/enhanced/enhanced-rtmp-v1#defining-additional-video-codecs 
@@ -25,10 +26,12 @@ public record FLVStandardVideoTagData(
         );
     }
 
+    @CreatesCopy
     public static FLVStandardVideoTagData from(FLVVideoFrameType frameType, FLVVideoCodec codec, VideoCodecData data) {
         return from(frameType.id, codec.id, data);
     }
 
+    @CreatesCopy
     public static FLVStandardVideoTagData from(int rawFrameType, int rawCodec, VideoCodecData codecData) {
         ASAssert.u4(rawFrameType, "rawFrameType");
         ASAssert.u4(rawCodec, "rawCodec");

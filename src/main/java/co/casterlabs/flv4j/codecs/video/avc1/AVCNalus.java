@@ -5,13 +5,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import co.casterlabs.flv4j.actionscript.io.ASByteView;
+import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 // This is a helper class to parse NAL units from AVC video data.
-// Each NAL is prefixed with a 4-byte length field.
-// We have to count how many NALs are present in the given ASByteView.
+// This parser currently assumes 4-byte length prefixes.
+// We have to count how many NALUs are present in the given ASByteView.
 public record AVCNalus(ASByteView view) implements AVCPacketData {
 
-    public AVCNalus from(AVCNalu[] nalus) {
+    @CreatesCopy
+    public static AVCNalus from(AVCNalu[] nalus) {
         int requiredLength = nalus.length * 4; // 4 bytes for each NAL length prefix
         for (AVCNalu nal : nalus) {
             requiredLength += nal.view().length();
@@ -28,7 +30,7 @@ public record AVCNalus(ASByteView view) implements AVCPacketData {
             data[offset++] = (byte) ((nalLength >> 8) & 0xFF);
             data[offset++] = (byte) ((nalLength >> 0) & 0xFF);
 
-            // Write the NAL data
+            // Write the NALU data
             System.arraycopy(nal.view().buffer(), nal.view().offset(), data, offset, nalLength);
             offset += nalLength;
         }

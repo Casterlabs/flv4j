@@ -73,8 +73,12 @@ public record FLVFileHeader(
     public final String toString() {
         StringBuilder expandedHeaderDataHex = new StringBuilder();
         for (byte b : this.expandedHeaderData) {
+            int unsigned = b & 0xFF;
             expandedHeaderDataHex.append(" 0x");
-            expandedHeaderDataHex.append(Integer.toString(b, 16));
+            if (unsigned < 0x10) {
+                expandedHeaderDataHex.append('0');
+            }
+            expandedHeaderDataHex.append(Integer.toString(unsigned, 16));
         }
 
         return String.format(

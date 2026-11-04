@@ -1,4 +1,4 @@
-package co.casterlabs.flv4j.test.flv;
+package co.casterlabs.flv4j.test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,14 +7,14 @@ import java.nio.charset.StandardCharsets;
 import co.casterlabs.commons.io.streams.StreamUtil;
 import co.casterlabs.flv4j.actionscript.io.ASAssert;
 
-class _Media {
+public class Media {
 
     static {
         ASAssert.class.getClassLoader().setPackageAssertionStatus("co.casterlabs.flv4j", true);
 
         try {
             String licenseInfo = StreamUtil.toString(
-                _Media.class.getClassLoader()
+                Media.class.getClassLoader()
                     .getResourceAsStream("media/sources/license.txt"),
                 StandardCharsets.UTF_8
             );
@@ -26,13 +26,13 @@ class _Media {
         }
     }
 
-    static InputStream stream(String name) {
-        return _Media.class
+    public static InputStream stream(String name) {
+        return Media.class
             .getClassLoader()
             .getResourceAsStream("media/" + name + ".flv");
     }
 
-    static byte[] bytes(String name) throws IOException {
+    public static byte[] bytes(String name) throws IOException {
         return StreamUtil.toBytes(stream(name));
     }
 

@@ -2,6 +2,8 @@ package co.casterlabs.flv4j.actionscript.io;
 
 import java.util.Arrays;
 
+import co.casterlabs.flv4j.documentation.CreatesCopy;
+
 public record ASByteView(byte[] buffer, int offset, int length) {
 
     public ASByteView(byte[] buf) {
@@ -16,12 +18,14 @@ public record ASByteView(byte[] buffer, int offset, int length) {
         return new ASByteView(this.buffer, this.offset + newOffset, newLength);
     }
 
+    @CreatesCopy
     public byte[] raw() {
         byte[] result = new byte[this.length];
         System.arraycopy(this.buffer, this.offset, result, 0, this.length);
         return result;
     }
 
+    @CreatesCopy
     public byte[] bytes(int index, int len) {
         byte[] result = new byte[len];
         System.arraycopy(this.buffer, this.offset + index, result, 0, len);
@@ -129,12 +133,14 @@ public record ASByteView(byte[] buffer, int offset, int length) {
         return Double.longBitsToDouble(bits);
     }
 
+    @CreatesCopy
     public ByteString utf8(int index) {
         int len = u16(index);
         byte[] bytes = bytes(index + 2, len);
         return new ByteString(bytes);
     }
 
+    @CreatesCopy
     public ByteString utf8long(int index) {
         int len = (int) u32(index);
         byte[] bytes = bytes(index + 4, len);
