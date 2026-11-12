@@ -1,6 +1,7 @@
 package co.casterlabs.flv4j.codecs.video.avc1;
 
 import co.casterlabs.flv4j.actionscript.io.ASBitReader;
+import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.codecs.video.ChromaSubsampling;
 import co.casterlabs.flv4j.codecs.video.ColorPrimaries;
 import co.casterlabs.flv4j.codecs.video.MatrixCoefficients;
@@ -48,7 +49,8 @@ public record AVCSPS(
         if (nalu.type() != AVCNaluType.SPS) {
             throw new IllegalArgumentException("Expected an SPS NALU, got: " + nalu.type());
         }
-        ASBitReader b = new ASBitReader(nalu.rbsp());
+        ASByteView rbsp = nalu.rbsp();
+        ASBitReader b = new ASBitReader(rbsp);
 
         int profileIdc = (int) b.u(8);
         b.skip(8); // constraint_set[0-5]_flags + reserved_zero_2bits
@@ -160,12 +162,12 @@ public record AVCSPS(
 
             boolean nalHrdPresent = b.bit() == 1; // vui_nal_hrd_parameters_present_flag
             if (nalHrdPresent) {
-                _skipHrdParameters(b);
+                _trySkipHrdParameters(rbsp, b);
             }
 
             boolean vclHrdPresent = b.bit() == 1; // vui_vcl_hrd_parameters_present_flag
             if (vclHrdPresent) {
-                _skipHrdParameters(b);
+                _trySkipHrdParameters(rbsp, b);
             }
 
             if (nalHrdPresent || vclHrdPresent) {
@@ -189,12 +191,10 @@ public record AVCSPS(
         TransferCharacteristics transferCharacteristics = TransferCharacteristics.fromH273(transfer);
         MatrixCoefficients matrixCoefficients = MatrixCoefficients.fromH273(matrix);
 
-        // rbsp_trailing_bits: a stop bit, then zeros. A misaligned walk fails here.
-        if (b.bit() != 1) {
-            throw new IllegalStateException("SPS rbsp_trailing_bits: expected the stop bit at bit " + (b.bitsRead() - 1) + ", got 0 (walk is misaligned)");
-        }
-        if (b.bitsRemaining() > 0 && b.u(b.bitsRemaining()) != 0) {
-            throw new IllegalStateException("SPS rbsp_trailing_bits: non-zero bits after the stop bit (walk is misaligned)");
+        // rbsp_trailing_bits: strict walk first, then a lenient stop-bit scan for
+        // in-the-wild malformed tails.
+        if (!_consumeTrailingBits(rbsp, b)) {
+            throw new IllegalStateException("SPS rbsp_trailing_bits: no valid stop bit + zero padding (walk is misaligned)");
         }
 
         return new AVCSPS(
@@ -347,6 +347,10 @@ public record AVCSPS(
 
     private static void _skipHrdParameters(ASBitReader b) {
         int cpbCntMinus1 = b.ue();
+        if (cpbCntMinus1 < 0 || cpbCntMinus1 > 31) {
+            throw new IllegalArgumentException("Invalid hrd_parameters cpb_cnt_minus1: " + cpbCntMinus1);
+        }
+
         b.u(4); // bit_rate_scale
         b.u(4); // cpb_size_scale
 
@@ -360,6 +364,43 @@ public record AVCSPS(
         b.u(5); // cpb_removal_delay_length_minus1
         b.u(5); // dpb_output_delay_length_minus1
         b.u(5); // time_offset_length
+    }
+
+    private static boolean _trySkipHrdParameters(ASByteView rbsp, ASBitReader b) {
+        ASBitReader probe = new ASBitReader(rbsp);
+        probe.skipTo(b.bitsRead());
+
+        try {
+            _skipHrdParameters(probe);
+            b.skipTo(probe.bitsRead());
+            return true;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean _consumeTrailingBits(ASByteView rbsp, ASBitReader b) {
+        int pos = b.bitsRead();
+        ASBitReader strict = new ASBitReader(rbsp);
+        strict.skipTo(pos);
+
+        if (strict.hasBits(1) && strict.bit() == 1 && (strict.bitsRemaining() == 0 || strict.u(strict.bitsRemaining()) == 0)) {
+            b.skipTo(strict.bitsRead());
+            return true;
+        }
+
+        // Fallback: locate a trailing rbsp_stop_one_bit followed only by zero padding.
+        int end = rbsp.length() * 8;
+        for (int candidate = pos; candidate < end; candidate++) {
+            ASBitReader probe = new ASBitReader(rbsp);
+            probe.skipTo(candidate);
+            if (probe.bit() == 1 && (probe.bitsRemaining() == 0 || probe.u(probe.bitsRemaining()) == 0)) {
+                b.skipTo(probe.bitsRead());
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

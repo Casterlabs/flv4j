@@ -154,7 +154,7 @@ public record AV1CodecConfigurationRecord(ASByteView view) implements AV1PacketD
     @Override
     public String toString() {
         return String.format(
-            "AV1CodecConfigurationRecord{marker=%d, version=%d, profile=%d, seqLevelIdx=%d, tier=%d, bitDepth=%d (%s), monochrome=%b, chromaSubsampling=%s, chromaSamplePosition=%d, reserved3Bits=%d, initialPresentationDelayPresent=%b, initialPresentationDelayMinusOne=%d, reserved4Bits=%d, configObusLength=%d}",
+            "AV1CodecConfigurationRecord{marker=%d, version=%d, profile=%d, seqLevelIdx=%d, tier=%d, bitDepth=%d (%s), monochrome=%b, chromaSubsampling=%s, chromaSamplePosition=%d, reserved3Bits=%d, initialPresentationDelayPresent=%b, initialPresentationDelayMinusOne=%d, reserved4Bits=%d, configObus=%s}",
             this.marker(),
             this.version(),
             this.profile(),
