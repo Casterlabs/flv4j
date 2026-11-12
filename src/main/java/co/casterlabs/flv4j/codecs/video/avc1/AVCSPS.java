@@ -10,6 +10,7 @@ import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 public record AVCSPS(
     int profileIdc,
+    int constraintFlags,
     int levelIdc,
     int spsId,
     int chromaFormatIdc,
@@ -53,7 +54,7 @@ public record AVCSPS(
         ASBitReader b = new ASBitReader(rbsp);
 
         int profileIdc = (int) b.u(8);
-        b.skip(8); // constraint_set[0-5]_flags + reserved_zero_2bits
+        int constraintFlags = (int) b.u(8); // constraint_set[0-5]_flags + reserved_zero_2bits
         int levelIdc = (int) b.u(8);
         int spsId = b.ue();
 
@@ -199,6 +200,7 @@ public record AVCSPS(
 
         return new AVCSPS(
             profileIdc,
+            constraintFlags,
             levelIdc,
             spsId,
             chromaFormatIdc,
