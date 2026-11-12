@@ -67,7 +67,7 @@ public record AVCSPS(
             bitDepthChromaMinus8 = b.ue();
             b.bit(); // qpprime_y_zero_transform_bypass_flag
             if (b.bit() == 1) { // seq_scaling_matrix_present_flag
-                throw new UnsupportedOperationException("seq_scaling_list_data() is not supported by the minimal SPS reader");
+                _skipSeqScalingListData(b, chromaFormatIdc);
             }
         }
 
@@ -158,11 +158,18 @@ public record AVCSPS(
                 }
             }
 
-            if (b.bit() == 1) { // vui_nal_hrd_parameters_present_flag
-                throw new UnsupportedOperationException("vui_hrd_parameters() is not supported by the minimal SPS reader");
+            boolean nalHrdPresent = b.bit() == 1; // vui_nal_hrd_parameters_present_flag
+            if (nalHrdPresent) {
+                _skipHrdParameters(b);
             }
-            if (b.bit() == 1) { // vui_vcl_hrd_parameters_present_flag
-                throw new UnsupportedOperationException("vui_hrd_parameters() is not supported by the minimal SPS reader");
+
+            boolean vclHrdPresent = b.bit() == 1; // vui_vcl_hrd_parameters_present_flag
+            if (vclHrdPresent) {
+                _skipHrdParameters(b);
+            }
+
+            if (nalHrdPresent || vclHrdPresent) {
+                b.bit(); // low_delay_hrd_flag
             }
 
             picStruct = b.bit() == 1; // pic_struct_present_flag
@@ -312,6 +319,47 @@ public record AVCSPS(
             case 1 -> 2;
             default -> 1;
         };
+    }
+
+    private static void _skipSeqScalingListData(ASBitReader b, int chromaFormatIdc) {
+        int listCount = chromaFormatIdc == 3 ? 12 : 8;
+        for (int i = 0; i < listCount; i++) {
+            if (b.bit() == 1) { // seq_scaling_list_present_flag[i]
+                _skipScalingList(b, i < 6 ? 16 : 64);
+            }
+        }
+    }
+
+    private static void _skipScalingList(ASBitReader b, int listSize) {
+        int lastScale = 8;
+        int nextScale = 8;
+
+        for (int j = 0; j < listSize; j++) {
+            if (nextScale != 0) {
+                int deltaScale = b.se();
+                nextScale = (lastScale + deltaScale + 256) % 256;
+            }
+            if (nextScale != 0) {
+                lastScale = nextScale;
+            }
+        }
+    }
+
+    private static void _skipHrdParameters(ASBitReader b) {
+        int cpbCntMinus1 = b.ue();
+        b.u(4); // bit_rate_scale
+        b.u(4); // cpb_size_scale
+
+        for (int schedSelIdx = 0; schedSelIdx <= cpbCntMinus1; schedSelIdx++) {
+            b.ue(); // bit_rate_value_minus1[schedSelIdx]
+            b.ue(); // cpb_size_value_minus1[schedSelIdx]
+            b.bit(); // cbr_flag[schedSelIdx]
+        }
+
+        b.u(5); // initial_cpb_removal_delay_length_minus1
+        b.u(5); // cpb_removal_delay_length_minus1
+        b.u(5); // dpb_output_delay_length_minus1
+        b.u(5); // time_offset_length
     }
 
 }

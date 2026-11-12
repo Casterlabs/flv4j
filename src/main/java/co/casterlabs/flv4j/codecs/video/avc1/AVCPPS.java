@@ -1,6 +1,7 @@
 package co.casterlabs.flv4j.codecs.video.avc1;
 
 import co.casterlabs.flv4j.actionscript.io.ASBitReader;
+import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 public record AVCPPS(
@@ -28,7 +29,8 @@ public record AVCPPS(
             throw new IllegalArgumentException("Expected a PPS NALU, got: " + nalu.type());
         }
 
-        ASBitReader b = new ASBitReader(nalu.rbsp());
+        ASByteView rbsp = nalu.rbsp();
+        ASBitReader b = new ASBitReader(rbsp);
 
         int ppsId = b.ue();
         int spsId = b.ue();
@@ -36,7 +38,7 @@ public record AVCPPS(
         boolean bottomFieldPicOrderInFramePresent = b.bit() == 1;
         int numSliceGroupsMinus1 = b.ue();
         if (numSliceGroupsMinus1 > 0) {
-            throw new UnsupportedOperationException("slice groups are not supported by the minimal PPS reader");
+            _skipSliceGroups(b, numSliceGroupsMinus1);
         }
 
         int numRefIdxL0DefaultActiveMinus1 = b.ue();
@@ -61,9 +63,16 @@ public record AVCPPS(
             if (b.bitsRemaining() > 1) { // more_rbsp_data()
                 transform8x8Mode = b.bit() == 1; // transform_8x8_mode_flag
                 if (b.bit() == 1) { // pps_scaling_matrix_present_flag
-                    throw new UnsupportedOperationException("pps_scaling_list_data() is not supported by the minimal PPS reader");
+                    int scalingPos = b.bitsRead();
+                    int[] parsedTail = _parsePpsScalingTail(rbsp, scalingPos, transform8x8Mode);
+                    if (parsedTail == null) {
+                        throw new IllegalStateException("PPS scaling_list_data tail misaligned");
+                    }
+                    b.skipTo(parsedTail[0]);
+                    secondChromaQpIndexOffset = parsedTail[1];
+                } else {
+                    secondChromaQpIndexOffset = b.se();
                 }
-                secondChromaQpIndexOffset = b.se();
             }
             if (!_rbspTailClean(b)) {
                 throw new IllegalStateException("PPS tail misaligned");
@@ -133,6 +142,88 @@ public record AVCPPS(
             return false;
         }
         return b.bitsRemaining() == 0 || b.u(b.bitsRemaining()) == 0;
+    }
+
+    private static int[] _parsePpsScalingTail(ASByteView rbsp, int scalingDataPos, boolean transform8x8Mode) {
+        int[] candidates = transform8x8Mode ? new int[] { 8, 12 } : new int[] { 6 };
+        for (int listCount : candidates) {
+            ASBitReader probe = new ASBitReader(rbsp);
+            probe.skipTo(scalingDataPos);
+            try {
+                _skipPpsScalingListData(probe, listCount);
+                int secondChromaQpIndexOffset = probe.se();
+                int posAfterSecond = probe.bitsRead();
+                if (_rbspTailClean(probe)) {
+                    return new int[] { posAfterSecond, secondChromaQpIndexOffset };
+                }
+            } catch (RuntimeException ignored) {}
+        }
+        return null;
+    }
+
+    private static void _skipPpsScalingListData(ASBitReader b, int listCount) {
+        for (int i = 0; i < listCount; i++) {
+            if (b.bit() == 1) { // pps_scaling_list_present_flag[i]
+                _skipScalingList(b, i < 6 ? 16 : 64);
+            }
+        }
+    }
+
+    private static void _skipScalingList(ASBitReader b, int listSize) {
+        int lastScale = 8;
+        int nextScale = 8;
+
+        for (int j = 0; j < listSize; j++) {
+            if (nextScale != 0) {
+                int deltaScale = b.se();
+                nextScale = (lastScale + deltaScale + 256) % 256;
+            }
+            if (nextScale != 0) {
+                lastScale = nextScale;
+            }
+        }
+    }
+
+    private static void _skipSliceGroups(ASBitReader b, int numSliceGroupsMinus1) {
+        int sliceGroupMapType = b.ue();
+
+        switch (sliceGroupMapType) {
+            case 0 -> {
+                for (int i = 0; i <= numSliceGroupsMinus1; i++) {
+                    b.ue(); // run_length_minus1[i]
+                }
+            }
+            case 2 -> {
+                for (int i = 0; i < numSliceGroupsMinus1; i++) {
+                    b.ue(); // top_left[i]
+                    b.ue(); // bottom_right[i]
+                }
+            }
+            case 3, 4, 5 -> {
+                b.bit(); // slice_group_change_direction_flag
+                b.ue(); // slice_group_change_rate_minus1
+            }
+            case 6 -> {
+                int picSizeInMapUnitsMinus1 = b.ue();
+                int bitsPerId = _ceilLog2(numSliceGroupsMinus1 + 1);
+                for (int i = 0; i <= picSizeInMapUnitsMinus1; i++) {
+                    b.u(bitsPerId); // slice_group_id[i]
+                }
+            }
+            default -> {
+                // map type 1 has no extra payload in PPS
+            }
+        }
+    }
+
+    private static int _ceilLog2(int value) {
+        int bits = 0;
+        int threshold = 1;
+        while (threshold < value) {
+            threshold <<= 1;
+            bits++;
+        }
+        return bits;
     }
 
 }

@@ -95,7 +95,7 @@ public record HEVCSPS(
         if (profileIdc == 121 || profileIdc == 144 || profileIdc == 149 || profileIdc == 155) {
             // sps_range_extension_flag
             if (b.bit() == 1) {
-                throw new UnsupportedOperationException("sps_range_parameters() is not supported by the minimal SPS reader");
+                _skipSpsRangeExtension(b);
             }
         }
 
@@ -143,7 +143,7 @@ public record HEVCSPS(
 
         if (b.bit() == 1) { // sps_scaling_list_enabled_flag
             if (b.bit() == 1) { // sps_scaling_list_data_present_flag
-                throw new UnsupportedOperationException("scaling_list_data() is not supported by the minimal SPS reader");
+                _skipScalingListData(b);
             }
         }
 
@@ -244,10 +244,10 @@ public record HEVCSPS(
             int flagsPos = b.bitsRead();
             long[] tail;
             try {
-                tail = _vuiTailFields(b, rbsp, true);
+                tail = _vuiTailFields(b, rbsp, true, maxSubLayersMinus1);
             } catch (RuntimeException e) {
                 b.skipTo(flagsPos);
-                tail = _vuiTailFields(b, rbsp, false);
+                tail = _vuiTailFields(b, rbsp, false, maxSubLayersMinus1);
             }
             chromaLoc = tail[0] != 0;
             neutral = tail[1] != 0;
@@ -270,7 +270,11 @@ public record HEVCSPS(
             int scc = b.bit();
             b.u(4); // sps_extension_4bits
             if ((range | multi | d3 | scc) != 0) {
-                throw new UnsupportedOperationException("SPS extensions are not supported by the minimal SPS reader");
+                if (range != 0) {
+                    _skipSpsRangeExtension(b);
+                }
+                // Keep the walk aligned for payloads we do not surface.
+                _skipExtensionData(rbsp, b);
             }
         }
 
@@ -379,7 +383,7 @@ public record HEVCSPS(
         );
     }
 
-    private static long[] _vuiTailFields(ASBitReader b, ASByteView rbsp, boolean standard) {
+    private static long[] _vuiTailFields(ASBitReader b, ASByteView rbsp, boolean standard, int maxSubLayersMinus1) {
         long[] f = new long[8];
         if (standard) {
             f[0] = b.bit(); // chroma_loc_info_present_flag
@@ -418,7 +422,7 @@ public record HEVCSPS(
             }
         }
         if (b.bit() == 1) { // vui_hrd_parameters_present_flag
-            throw new UnsupportedOperationException("vui_hrd_parameters() is not supported by the minimal SPS reader");
+            _skipHrdParameters(b, maxSubLayersMinus1);
         }
         if (b.bit() == 1) { // vui_bitstream_restriction_flag
             b.bit(); // tiles_fixed_structure_flag
@@ -497,6 +501,120 @@ public record HEVCSPS(
             case 1 -> 2;
             default -> 1;
         };
+    }
+
+    private static void _skipSpsRangeExtension(ASBitReader b) {
+        b.bit(); // transform_skip_rotation_enabled_flag
+        b.bit(); // transform_skip_context_enabled_flag
+        b.bit(); // implicit_rdpcm_enabled_flag
+        b.bit(); // explicit_rdpcm_enabled_flag
+        b.bit(); // extended_precision_processing_flag
+        b.bit(); // intra_smoothing_disabled_flag
+        b.bit(); // high_precision_offsets_enabled_flag
+        b.bit(); // persistent_rice_adaptation_enabled_flag
+        b.bit(); // cabac_bypass_alignment_enabled_flag
+    }
+
+    private static void _skipScalingListData(ASBitReader b) {
+        for (int sizeId = 0; sizeId < 4; sizeId++) {
+            for (int matrixId = 0; matrixId < 6; matrixId += (sizeId == 3) ? 3 : 1) {
+                boolean predModeFlag = b.bit() == 1;
+                if (!predModeFlag) {
+                    b.ue(); // scaling_list_pred_matrix_id_delta
+                    continue;
+                }
+
+                int coefNum = Math.min(64, 1 << (4 + (sizeId << 1)));
+                if (sizeId > 1) {
+                    b.se(); // scaling_list_dc_coef_minus8
+                }
+                for (int i = 0; i < coefNum; i++) {
+                    b.se(); // scaling_list_delta_coef
+                }
+            }
+        }
+    }
+
+    private static void _skipHrdParameters(ASBitReader b, int maxSubLayersMinus1) {
+        boolean nalHrdParametersPresent = b.bit() == 1;
+        boolean vclHrdParametersPresent = b.bit() == 1;
+        boolean subPicHrdParamsPresent = false;
+
+        if (nalHrdParametersPresent || vclHrdParametersPresent) {
+            subPicHrdParamsPresent = b.bit() == 1;
+            if (subPicHrdParamsPresent) {
+                b.u(8); // tick_divisor_minus2
+                b.u(5); // du_cpb_removal_delay_increment_length_minus1
+                b.bit(); // sub_pic_cpb_params_in_pic_timing_sei_flag
+                b.u(5); // dpb_output_delay_du_length_minus1
+            }
+            b.u(4); // bit_rate_scale
+            b.u(4); // cpb_size_scale
+            if (subPicHrdParamsPresent) {
+                b.u(4); // cpb_size_du_scale
+            }
+            b.u(5); // initial_cpb_removal_delay_length_minus1
+            b.u(5); // au_cpb_removal_delay_length_minus1
+            b.u(5); // dpb_output_delay_length_minus1
+        }
+
+        for (int i = 0; i <= maxSubLayersMinus1; i++) {
+            boolean fixedPicRateGeneralFlag = b.bit() == 1;
+            boolean fixedPicRateWithinCvsFlag = true;
+            if (!fixedPicRateGeneralFlag) {
+                fixedPicRateWithinCvsFlag = b.bit() == 1;
+            }
+
+            boolean lowDelayHrdFlag = false;
+            int cpbCntMinus1 = 0;
+            if (fixedPicRateWithinCvsFlag) {
+                b.ue(); // elemental_duration_in_tc_minus1
+            } else {
+                lowDelayHrdFlag = b.bit() == 1;
+            }
+            if (!lowDelayHrdFlag) {
+                cpbCntMinus1 = b.ue();
+            }
+
+            if (nalHrdParametersPresent) {
+                _skipSubLayerHrdParameters(b, cpbCntMinus1, subPicHrdParamsPresent);
+            }
+            if (vclHrdParametersPresent) {
+                _skipSubLayerHrdParameters(b, cpbCntMinus1, subPicHrdParamsPresent);
+            }
+        }
+    }
+
+    private static void _skipSubLayerHrdParameters(ASBitReader b, int cpbCntMinus1, boolean subPicHrdParamsPresent) {
+        for (int i = 0; i <= cpbCntMinus1; i++) {
+            b.ue(); // bit_rate_value_minus1[i]
+            b.ue(); // cpb_size_value_minus1[i]
+            if (subPicHrdParamsPresent) {
+                b.ue(); // cpb_size_du_value_minus1[i]
+                b.ue(); // bit_rate_du_value_minus1[i]
+            }
+            b.bit(); // cbr_flag[i]
+        }
+    }
+
+    private static void _skipExtensionData(ASByteView rbsp, ASBitReader b) {
+        while (_moreRbspData(rbsp, b.bitsRead())) {
+            b.bit(); // sps_extension_data_flag
+        }
+    }
+
+    private static boolean _moreRbspData(ASByteView rbsp, int bitPos) {
+        ASBitReader probe = new ASBitReader(rbsp);
+        probe.skipTo(bitPos);
+        if (!probe.hasBits(1)) {
+            return false;
+        }
+
+        if (probe.bit() == 0) {
+            return true;
+        }
+
+        return probe.bitsRemaining() > 0 && probe.u(probe.bitsRemaining()) != 0;
     }
 
 }

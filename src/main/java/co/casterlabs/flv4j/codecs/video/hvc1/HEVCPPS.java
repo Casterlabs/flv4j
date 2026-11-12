@@ -1,6 +1,7 @@
 package co.casterlabs.flv4j.codecs.video.hvc1;
 
 import co.casterlabs.flv4j.actionscript.io.ASBitReader;
+import co.casterlabs.flv4j.actionscript.io.ASByteView;
 import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 public record HEVCPPS(
@@ -27,7 +28,8 @@ public record HEVCPPS(
             throw new IllegalArgumentException("Expected a PPS NALU, got: " + nalu.type());
         }
 
-        ASBitReader b = new ASBitReader(nalu.rbsp());
+        ASByteView rbsp = nalu.rbsp();
+        ASBitReader b = new ASBitReader(rbsp);
 
         int ppsId = b.ue();
         int spsId = b.ue();
@@ -64,7 +66,7 @@ public record HEVCPPS(
                 }
             }
             if (b.bit() == 1) { // pps_scaling_list_data_present_flag
-                throw new UnsupportedOperationException("scaling_list_data() is not supported by the minimal PPS reader");
+                _skipScalingListData(b);
             }
             b.bit(); // pps_lists_modification_present_flag
             b.ue(); // pps_log2_parallel_merge_level_minus2
@@ -76,7 +78,8 @@ public record HEVCPPS(
                 int scc = b.bit();
                 b.u(4); // pps_extension_4bits
                 if ((range | multi | d3 | scc) != 0) {
-                    throw new UnsupportedOperationException("PPS extensions are not supported by the minimal PPS reader");
+                    // Keep the walk aligned for extension payloads we do not surface.
+                    _skipExtensionData(rbsp, b);
                 }
             }
             if (!_rbspTailClean(b)) {
@@ -146,6 +149,46 @@ public record HEVCPPS(
             return false;
         }
         return b.bitsRemaining() == 0 || b.u(b.bitsRemaining()) == 0;
+    }
+
+    private static void _skipScalingListData(ASBitReader b) {
+        for (int sizeId = 0; sizeId < 4; sizeId++) {
+            for (int matrixId = 0; matrixId < 6; matrixId += (sizeId == 3) ? 3 : 1) {
+                boolean predModeFlag = b.bit() == 1;
+                if (!predModeFlag) {
+                    b.ue(); // scaling_list_pred_matrix_id_delta
+                    continue;
+                }
+
+                int coefNum = Math.min(64, 1 << (4 + (sizeId << 1)));
+                if (sizeId > 1) {
+                    b.se(); // scaling_list_dc_coef_minus8
+                }
+                for (int i = 0; i < coefNum; i++) {
+                    b.se(); // scaling_list_delta_coef
+                }
+            }
+        }
+    }
+
+    private static void _skipExtensionData(ASByteView rbsp, ASBitReader b) {
+        while (_moreRbspData(rbsp, b.bitsRead())) {
+            b.bit(); // pps_extension_data_flag
+        }
+    }
+
+    private static boolean _moreRbspData(ASByteView rbsp, int bitPos) {
+        ASBitReader probe = new ASBitReader(rbsp);
+        probe.skipTo(bitPos);
+        if (!probe.hasBits(1)) {
+            return false;
+        }
+
+        if (probe.bit() == 0) {
+            return true;
+        }
+
+        return probe.bitsRemaining() > 0 && probe.u(probe.bitsRemaining()) != 0;
     }
 
 }
