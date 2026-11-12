@@ -96,6 +96,42 @@ public class Captured {
     }
 
     @Test
+    public void hevc_aac_hdr() throws IOException {
+        new NonSeekableFLVDemuxer() {
+            @Override
+            protected void onHeader(FLVFileHeader header) {}
+
+            @Override
+            protected void onTag(long previousTagSize, FLVTag tag) {
+                tag.toString(); // Just to make sure it doesn't throw an exception.
+                if (tag.data() instanceof FLVExVideoTagData data) {
+                    for (FLVExVideoTrack track : data.tracks()) {
+                        if (track.data() instanceof HEVCExVideoData av1) {
+                            if (av1.packetData() instanceof HEVCDecoderConfigurationRecord dcr) {
+                                dcr.toString();
+                                HEVCNalu[] spsNalus = dcr.nalus(HEVCNaluType.SPS);
+                                for (HEVCNalu nalu : spsNalus) {
+                                    HEVCSPS sps = HEVCSPS.from(nalu);
+                                    sps.toString();
+                                }
+
+                                HEVCNalu[] ppsNalus = dcr.nalus(HEVCNaluType.PPS);
+                                for (HEVCNalu nalu : ppsNalus) {
+                                    HEVCPPS pps = HEVCPPS.from(nalu);
+                                    pps.toString();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            protected void onEnd() {}
+        }.start(Media.stream("captured/hevc_aac_hdr"));
+    }
+
+    @Test
     public void av01_aac() throws IOException {
         new NonSeekableFLVDemuxer() {
             @Override

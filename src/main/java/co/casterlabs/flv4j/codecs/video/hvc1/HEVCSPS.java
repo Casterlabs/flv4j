@@ -16,6 +16,7 @@ public record HEVCSPS(
     int profileIdc,
     boolean tierFlag,
     long profileCompatibilityFlags,
+    long constraintIndicatorFlags,
     int levelIdc,
     int spsId,
     int chromaFormatIdc,
@@ -65,8 +66,10 @@ public record HEVCSPS(
         int profileIdc = (int) b.u(5);
         long profileCompatibilityFlags = b.u(32);
 
+        int constraintFlagsStart = b.bitsRead();
         b.skip(4); // general_progressive_source_flag, interlaced_source, non_packed, frame_only
         _profileConstraintBlock(b, profileIdc, profileCompatibilityFlags);
+        long constraintIndicatorFlags = _readRawBits(rbsp, constraintFlagsStart, b.bitsRead() - constraintFlagsStart);
 
         int levelIdc = (int) b.u(8);
         if (maxSubLayersMinus1 > 0) {
@@ -295,6 +298,7 @@ public record HEVCSPS(
             profileIdc,
             tierFlag,
             profileCompatibilityFlags,
+            constraintIndicatorFlags,
             levelIdc,
             spsId,
             chromaFormatIdc,
@@ -351,7 +355,7 @@ public record HEVCSPS(
     @Override
     public String toString() {
         return String.format(
-            "HEVCSPS{vpsId=%d, spsId=%d, maxSubLayers=%d, temporalIdNested=%b, profileSpace=%d, profileIdc=%d (%s), tierFlag=%b, profileCompatibilityFlags=%d, levelIdc=%d (%.1f), chromaFormatIdc=%d (%s), bitDepthLuma=%d, bitDepthChroma=%d, codedSize=%dx%d, displaySize=%dx%d, conformanceWindow=[left=%d, right=%d, top=%d, bottom=%d], numShortTermRefPicSets=%d, vuiParametersPresent=%b, chromaLocInfoPresent=%b, neutralChroma=%b, fieldSeq=%b, frameFieldInfoPresent=%b, defaultDisplayWindow=%b, numUnitsInTick=%d, timeScale=%d, fps=%.1f}",
+            "HEVCSPS{vpsId=%d, spsId=%d, maxSubLayers=%d, temporalIdNested=%b, profileSpace=%d, profileIdc=%d (%s), tierFlag=%b, profileCompatibilityFlags=%d, constraintIndicatorFlags=%d, levelIdc=%d (%.1f), chromaFormatIdc=%d (%s), bitDepthLuma=%d, bitDepthChroma=%d, codedSize=%dx%d, displaySize=%dx%d, conformanceWindow=[left=%d, right=%d, top=%d, bottom=%d], numShortTermRefPicSets=%d, vuiParametersPresent=%b, chromaLocInfoPresent=%b, neutralChroma=%b, fieldSeq=%b, frameFieldInfoPresent=%b, defaultDisplayWindow=%b, numUnitsInTick=%d, timeScale=%d, fps=%.1f}",
             this.vpsId,
             this.spsId,
             this.maxSubLayers(),
@@ -360,6 +364,7 @@ public record HEVCSPS(
             this.profileIdc, _profileName(this.profileIdc),
             this.tierFlag,
             this.profileCompatibilityFlags,
+            this.constraintIndicatorFlags,
             this.levelIdc, this.levelIdc / 30.0,
             this.chromaFormatIdc, this.chromaFormatIdc == 1 ? "4:2:0" : this.chromaFormatIdc == 2 ? "4:2:2" : this.chromaFormatIdc == 3 ? "4:4:4" : "monochrome",
             this.bitDepthLuma,
@@ -385,8 +390,8 @@ public record HEVCSPS(
         if (standard) {
             f[0] = b.bit(); // chroma_loc_info_present_flag
             if (f[0] == 1) {
-                b.u(32);
-                b.u(32); // chroma_sample_loc_type_non_progressive[0|1]
+                b.ue();
+                b.ue(); // chroma_sample_loc_type_top_field/bottom_field
             }
             f[1] = b.bit(); // neutral_chroma_indication_flag
             f[2] = b.bit(); // field_seq_flag
@@ -472,6 +477,19 @@ public record HEVCSPS(
         } catch (IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private static long _readRawBits(ASByteView rbsp, int startBit, int bitCount) {
+        if (bitCount <= 0) {
+            return 0;
+        }
+        if (bitCount > 64) {
+            throw new IllegalArgumentException("Cannot read more than 64 bits into a long: " + bitCount);
+        }
+
+        ASBitReader r = new ASBitReader(rbsp);
+        r.skipTo(startBit);
+        return r.u(bitCount);
     }
 
     private static String _profileName(int profileIdc) {
