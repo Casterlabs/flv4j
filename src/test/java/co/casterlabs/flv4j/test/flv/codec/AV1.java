@@ -95,7 +95,7 @@ public class AV1 {
 
         AV1SequenceHeader seq = AV1SequenceHeader.from(firstKeyObus[0][1]);
         assertEquals(0, seq.seqProfile());
-        assertEquals(31, seq.seqLevelIdx0());
+        assertEquals(31, seq.seqLevelIdx());
         assertEquals(8, seq.bitDepth());
         assertEquals(false, seq.monochrome());
         assertEquals(false, seq.fullRange());
@@ -103,6 +103,8 @@ public class AV1 {
         assertEquals(MatrixCoefficients.UNSPECIFIED, seq.matrixCoefficients());
         assertEquals(ColorPrimaries.UNSPECIFIED, seq.colourPrimaries());
         assertEquals(TransferCharacteristics.UNSPECIFIED, seq.transferCharacteristics());
+        assertEquals(320, seq.maxFrameWidth());
+        assertEquals(180, seq.maxFrameHeight());
     }
 
     @Test

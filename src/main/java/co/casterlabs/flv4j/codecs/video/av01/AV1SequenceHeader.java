@@ -9,7 +9,12 @@ import co.casterlabs.flv4j.codecs.video.TransferCharacteristics;
 // https://aomediacodec.github.io/av1-spec/#sequence-header-obu-syntax
 public record AV1SequenceHeader(
     int seqProfile,
-    int seqLevelIdx0,
+    int seqLevelIdx,
+    int maxFrameWidth,
+    int maxFrameHeight,
+    long numUnitsInDisplayTick,
+    long timeScale,
+    long numTicksPerPicture,
     int bitDepth,
     boolean monochrome,
     boolean fullRange,
@@ -33,6 +38,10 @@ public record AV1SequenceHeader(
         b.bit(); // still_picture
         boolean reducedStillPictureHeader = b.bit() == 1;
 
+        long numUnitsInDisplayTick = 0;
+        long timeScale = 0;
+        long numTicksPerPicture = 0;
+
         int seqLevelIdx0;
         boolean decoderModelInfoPresentFlag = false;
         int operatingPointsCntMinus1 = 0;
@@ -43,11 +52,11 @@ public record AV1SequenceHeader(
         } else {
             boolean timingInfoPresentFlag = b.bit() == 1;
             if (timingInfoPresentFlag) {
-                b.u(32); // num_units_in_display_tick
-                b.u(32); // time_scale
+                numUnitsInDisplayTick = b.u(32);
+                timeScale = b.u(32);
                 boolean equalPictureInterval = b.bit() == 1;
                 if (equalPictureInterval) {
-                    readUvlc(b); // num_ticks_per_picture_minus_1
+                    numTicksPerPicture = readUvlc(b) + 1;
                 }
                 decoderModelInfoPresentFlag = b.bit() == 1;
                 if (decoderModelInfoPresentFlag) {
@@ -93,8 +102,8 @@ public record AV1SequenceHeader(
 
         int frameWidthBitsMinus1 = (int) b.u(4);
         int frameHeightBitsMinus1 = (int) b.u(4);
-        b.u(frameWidthBitsMinus1 + 1); // max_frame_width_minus_1
-        b.u(frameHeightBitsMinus1 + 1); // max_frame_height_minus_1
+        int maxFrameWidth = (int) b.u(frameWidthBitsMinus1 + 1) + 1;
+        int maxFrameHeight = (int) b.u(frameHeightBitsMinus1 + 1) + 1;
 
         boolean frameIdNumbersPresentFlag = false;
         if (!reducedStillPictureHeader) {
@@ -222,6 +231,11 @@ public record AV1SequenceHeader(
         return new AV1SequenceHeader(
             seqProfile,
             seqLevelIdx0,
+            maxFrameWidth,
+            maxFrameHeight,
+            numUnitsInDisplayTick,
+            timeScale,
+            numTicksPerPicture,
             bitDepth,
             monochrome,
             fullRange,
@@ -234,18 +248,26 @@ public record AV1SequenceHeader(
         );
     }
 
-    private static int readUvlc(ASBitReader b) {
+    public double frameRate() {
+        if (this.numUnitsInDisplayTick == 0 || this.timeScale == 0 || this.numTicksPerPicture == 0) {
+            return -1;
+        }
+
+        return (double) this.timeScale / (this.numUnitsInDisplayTick * this.numTicksPerPicture);
+    }
+
+    private static long readUvlc(ASBitReader b) {
         int leadingZeros = 0;
-        while (b.bit() == 0) {
+
+        while (leadingZeros < 32 && b.bit() == 0) {
             leadingZeros++;
-            if (leadingZeros > 31) {
-                throw new IllegalArgumentException("AV1 UVLC run of zeros exceeds 31");
-            }
         }
-        if (leadingZeros == 0) {
-            return 0;
+
+        if (leadingZeros == 32) {
+            return 0xFFFFFFFFL;
         }
-        return (1 << leadingZeros) - 1 + (int) b.u(leadingZeros);
+
+        return ((1L << leadingZeros) - 1) + b.u(leadingZeros);
     }
 
 }
