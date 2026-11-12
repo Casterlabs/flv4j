@@ -15,14 +15,14 @@ public record AVCSPS(
     int spsId,
     int chromaFormatIdc,
     boolean separateColourPlane,
-    int bitDepthLumaMinus8,
-    int bitDepthChromaMinus8,
-    int log2MaxFrameNumMinus4,
+    int bitDepthLuma,
+    int bitDepthChroma,
+    int log2MaxFrameNum,
     int picOrderCntType,
     int maxNumRefFrames,
     boolean gapsInFrameNumValueAllowed,
-    int picWidthInMbsMinus1,
-    int picHeightInMapUnitsMinus1,
+    int picWidthInMbs,
+    int picHeightInMapUnits,
     boolean frameMbsOnly,
     int cropLeftOffset,
     int cropRightOffset,
@@ -60,21 +60,21 @@ public record AVCSPS(
 
         int chromaFormatIdc = 0;
         boolean separateColourPlane = false;
-        int bitDepthLumaMinus8 = 0, bitDepthChromaMinus8 = 0;
+        int bitDepthLuma = 8, bitDepthChroma = 8;
         if (_highProfileSps(profileIdc)) {
             chromaFormatIdc = b.ue();
             if (chromaFormatIdc == 3) {
                 separateColourPlane = b.bit() == 1; // separate_colour_plane_flag
             }
-            bitDepthLumaMinus8 = b.ue();
-            bitDepthChromaMinus8 = b.ue();
+            bitDepthLuma = b.ue() + 8;
+            bitDepthChroma = b.ue() + 8;
             b.bit(); // qpprime_y_zero_transform_bypass_flag
             if (b.bit() == 1) { // seq_scaling_matrix_present_flag
                 _skipSeqScalingListData(b, chromaFormatIdc);
             }
         }
 
-        int log2MaxFrameNumMinus4 = b.ue();
+        int log2MaxFrameNum = b.ue() + 4;
         int picOrderCntType = b.ue();
         if (picOrderCntType == 0) {
             b.ue(); // log2_max_pic_order_cnt_lsb_minus4
@@ -91,8 +91,8 @@ public record AVCSPS(
         int maxNumRefFrames = b.ue();
         boolean gapsInFrameNumValueAllowed = b.bit() == 1;
 
-        int picWidthInMbsMinus1 = b.ue();
-        int picHeightInMapUnitsMinus1 = b.ue();
+        int picWidthInMbs = b.ue() + 1;
+        int picHeightInMapUnits = b.ue() + 1;
         boolean frameMbsOnly = b.bit() == 1;
         if (!frameMbsOnly) {
             b.bit(); // mb_adaptive_frame_field_flag
@@ -205,14 +205,14 @@ public record AVCSPS(
             spsId,
             chromaFormatIdc,
             separateColourPlane,
-            bitDepthLumaMinus8,
-            bitDepthChromaMinus8,
-            log2MaxFrameNumMinus4,
+            bitDepthLuma,
+            bitDepthChroma,
+            log2MaxFrameNum,
             picOrderCntType,
             maxNumRefFrames,
             gapsInFrameNumValueAllowed,
-            picWidthInMbsMinus1,
-            picHeightInMapUnitsMinus1,
+            picWidthInMbs,
+            picHeightInMapUnits,
             frameMbsOnly,
             cropLeft,
             cropRight,
@@ -237,11 +237,11 @@ public record AVCSPS(
     }
 
     public int codedWidth() {
-        return (this.picWidthInMbsMinus1 + 1) * 16;
+        return this.picWidthInMbs * 16;
     }
 
     public int codedHeight() {
-        return (this.frameMbsOnly ? 1 : 2) * (this.picHeightInMapUnitsMinus1 + 1) * 16;
+        return (this.frameMbsOnly ? 1 : 2) * this.picHeightInMapUnits * 16;
     }
 
     public int displayWidth() {
@@ -268,8 +268,8 @@ public record AVCSPS(
             this.levelIdc, this.levelIdc / 10.0,
             this.spsId,
             this.chromaFormatIdc, this.chromaFormatIdc == 1 ? "4:2:0" : this.chromaFormatIdc == 2 ? "4:2:2" : this.chromaFormatIdc == 3 ? "4:4:4" : "monochrome",
-            this.bitDepthLumaMinus8 + 8,
-            this.bitDepthChromaMinus8 + 8,
+            this.bitDepthLuma,
+            this.bitDepthChroma,
             this.picOrderCntType,
             this.maxNumRefFrames,
             this.codedWidth(), this.codedHeight(),

@@ -10,7 +10,7 @@ import co.casterlabs.flv4j.documentation.CreatesCopy;
 
 public record HEVCSPS(
     int vpsId,
-    int maxSubLayersMinus1,
+    int maxSubLayers,
     boolean temporalIdNested,
     int profileSpace,
     int profileIdc,
@@ -25,8 +25,8 @@ public record HEVCSPS(
     int conformanceWindowRightOffset,
     int conformanceWindowTopOffset,
     int conformanceWindowBottomOffset,
-    int bitDepthLumaMinus8,
-    int bitDepthChromaMinus8,
+    int bitDepthLuma,
+    int bitDepthChroma,
     int numShortTermRefPicSets,
     boolean vuiPresent,
     boolean aspectRatioInfoPresent,
@@ -58,6 +58,7 @@ public record HEVCSPS(
 
         int vpsId = (int) b.u(4);
         int maxSubLayersMinus1 = (int) b.u(3);
+        int maxSubLayers = maxSubLayersMinus1 + 1;
         boolean temporalIdNested = b.bit() == 1;
         int profileSpace = (int) b.u(2);
         boolean tierFlag = b.bit() == 1;
@@ -116,8 +117,8 @@ public record HEVCSPS(
             confBottom = b.ue();
         }
 
-        int bitDepthLumaMinus8 = b.ue();
-        int bitDepthChromaMinus8 = b.ue();
+        int bitDepthLuma = b.ue() + 8;
+        int bitDepthChroma = b.ue() + 8;
         int log2MaxPocLsbMinus4 = b.ue();
 
         if (b.bit() == 1) { // sps_sub_layer_ordering_info_present_flag
@@ -288,7 +289,7 @@ public record HEVCSPS(
 
         return new HEVCSPS(
             vpsId,
-            maxSubLayersMinus1,
+            maxSubLayers,
             temporalIdNested,
             profileSpace,
             profileIdc,
@@ -303,8 +304,8 @@ public record HEVCSPS(
             confRight,
             confTop,
             confBottom,
-            bitDepthLumaMinus8,
-            bitDepthChromaMinus8,
+            bitDepthLuma,
+            bitDepthChroma,
             numShortTermRps,
             vuiPresent,
             aspectInfo,
@@ -324,10 +325,6 @@ public record HEVCSPS(
             numUnitsInTick,
             timeScale
         );
-    }
-
-    public int maxSubLayers() {
-        return this.maxSubLayersMinus1 + 1;
     }
 
     public boolean vuiParametersPresent() {
@@ -365,8 +362,8 @@ public record HEVCSPS(
             this.profileCompatibilityFlags,
             this.levelIdc, this.levelIdc / 30.0,
             this.chromaFormatIdc, this.chromaFormatIdc == 1 ? "4:2:0" : this.chromaFormatIdc == 2 ? "4:2:2" : this.chromaFormatIdc == 3 ? "4:4:4" : "monochrome",
-            this.bitDepthLumaMinus8 + 8,
-            this.bitDepthChromaMinus8 + 8,
+            this.bitDepthLuma,
+            this.bitDepthChroma,
             this.picWidthInLumaSamples, this.picHeightInLumaSamples,
             this.displayWidth(), this.displayHeight(),
             this.conformanceWindowLeftOffset, this.conformanceWindowRightOffset, this.conformanceWindowTopOffset, this.conformanceWindowBottomOffset,

@@ -10,12 +10,14 @@ import co.casterlabs.flv4j.documentation.CreatesCopy;
 public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacketData {
 
     @CreatesCopy
-    public static AVCDecoderConfigurationRecord from(int configurationVersion, int profileIndication, int profileCompatibility, int levelIndication, int lengthSizeMinusOne, AVCNalu[] sps, AVCNalu[] pps) {
+    public static AVCDecoderConfigurationRecord from(int configurationVersion, int profileIndication, int profileCompatibility, int levelIndication, int lengthSize, AVCNalu[] sps, AVCNalu[] pps) {
         ASAssert.u8(configurationVersion, "configurationVersion");
         ASAssert.u8(profileIndication, "profileIndication");
         ASAssert.u8(profileCompatibility, "profileCompatibility");
         ASAssert.u8(levelIndication, "levelIndication");
-        ASAssert.u2(lengthSizeMinusOne, "lengthSizeMinusOne");
+        if (lengthSize < 1 || lengthSize > 4) {
+            throw new IllegalArgumentException("lengthSize must be in [1,4], got: " + lengthSize);
+        }
         ASAssert.u5(sps.length, "sps.length");
         ASAssert.u8(pps.length, "pps.length");
 
@@ -36,7 +38,7 @@ public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacke
         data[offset++] = (byte) (profileIndication & 0xFF);
         data[offset++] = (byte) (profileCompatibility & 0xFF);
         data[offset++] = (byte) (levelIndication & 0xFF);
-        data[offset++] = (byte) (0b11111100 | (lengthSizeMinusOne & 0b11));
+        data[offset++] = (byte) (0b11111100 | ((lengthSize - 1) & 0b11));
         data[offset++] = (byte) (0b11100000 | (sps.length & 0b11111));
 
         for (AVCNalu nal : sps) {
@@ -76,8 +78,8 @@ public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacke
         return this.view.u8(3);
     }
 
-    public int lengthSizeMinusOne() {
-        return this.view.u8(4) & 0b11;
+    public int lengthSize() {
+        return (this.view.u8(4) & 0b11) + 1;
     }
 
     public int numOfSPS() {
@@ -119,12 +121,12 @@ public record AVCDecoderConfigurationRecord(ASByteView view) implements AVCPacke
     @Override
     public String toString() {
         return String.format(
-            "AVCDecoderConfigurationRecord[configurationVersion=%d, profileIndication=%d, profileCompatibility=%d, levelIndication=%d, lengthSizeMinusOne=%d, sps=%s, pps=%s]",
+            "AVCDecoderConfigurationRecord[configurationVersion=%d, profileIndication=%d, profileCompatibility=%d, levelIndication=%d, lengthSize=%d, sps=%s, pps=%s]",
             this.configurationVersion(),
             this.profileIndication(),
             this.profileCompatibility(),
             this.levelIndication(),
-            this.lengthSizeMinusOne(),
+            this.lengthSize(),
             Arrays.toString(this.sps()),
             Arrays.toString(this.pps())
         );

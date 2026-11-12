@@ -298,8 +298,8 @@ public class HEVC {
         assertEquals(60, sps.levelIdc()); // level 2.0 (level_idc 60)
         assertEquals(1, sps.chromaFormatIdc()); // 4:2:0
         assertEquals(ChromaSubsampling.CS_420, sps.chromaSubsampling());
-        assertEquals(0, sps.bitDepthLumaMinus8());
-        assertEquals(0, sps.bitDepthChromaMinus8());
+        assertEquals(8, sps.bitDepthLuma());
+        assertEquals(8, sps.bitDepthChroma());
         assertEquals(ColorPrimaries.RESERVED, sps.colourPrimaries());
         assertEquals(TransferCharacteristics.RESERVED, sps.transferCharacteristics());
         assertEquals(MatrixCoefficients.IDENTITY, sps.matrixCoefficients());
@@ -343,7 +343,7 @@ public class HEVC {
         assertEquals(0, foundPps[0].ppsId());
         assertEquals(0, foundPps[0].spsId());
         assertTrue(foundPps[0].signDataHidingEnabled());
-        assertEquals(0, foundPps[0].initQpMinus26()); // init_qp = 26
+        assertEquals(26, foundPps[0].initQp());
         assertEquals(0, foundPps[0].ppsCbQpOffset());
         assertEquals(0, foundPps[0].ppsCrQpOffset());
     }

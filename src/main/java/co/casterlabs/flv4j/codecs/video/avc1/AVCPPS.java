@@ -9,12 +9,12 @@ public record AVCPPS(
     int spsId,
     boolean entropicCodingMode,
     boolean bottomFieldPicOrderInFramePresent,
-    int numRefIdxL0DefaultActiveMinus1,
-    int numRefIdxL1DefaultActiveMinus1,
+    int numRefIdxL0DefaultActive,
+    int numRefIdxL1DefaultActive,
     boolean weightedPred,
     int weightedBipredIdc,
-    int picInitQpMinus26,
-    int picInitQsMinus26,
+    int picInitQp,
+    int picInitQs,
     int chromaQpIndexOffset,
     boolean deblockingFilterControlPresent,
     boolean constrainedIntraPred,
@@ -41,12 +41,12 @@ public record AVCPPS(
             _skipSliceGroups(b, numSliceGroupsMinus1);
         }
 
-        int numRefIdxL0DefaultActiveMinus1 = b.ue();
-        int numRefIdxL1DefaultActiveMinus1 = b.ue();
+        int numRefIdxL0DefaultActive = b.ue() + 1;
+        int numRefIdxL1DefaultActive = b.ue() + 1;
         boolean weightedPred = b.bit() == 1;
         int weightedBipredIdc = (int) b.u(2);
-        int picInitQpMinus26 = b.se();
-        int picInitQsMinus26 = b.se();
+        int picInitQp = b.se() + 26;
+        int picInitQs = b.se() + 26;
         int chromaQpIndexOffset = b.se();
         boolean deblockingFilterControlPresent = b.bit() == 1;
         boolean constrainedIntraPred = b.bit() == 1;
@@ -98,12 +98,12 @@ public record AVCPPS(
             spsId,
             entropicCodingMode,
             bottomFieldPicOrderInFramePresent,
-            numRefIdxL0DefaultActiveMinus1,
-            numRefIdxL1DefaultActiveMinus1,
+            numRefIdxL0DefaultActive,
+            numRefIdxL1DefaultActive,
             weightedPred,
             weightedBipredIdc,
-            picInitQpMinus26,
-            picInitQsMinus26,
+            picInitQp,
+            picInitQs,
             chromaQpIndexOffset,
             deblockingFilterControlPresent,
             constrainedIntraPred,
@@ -116,17 +116,17 @@ public record AVCPPS(
     @Override
     public String toString() {
         return String.format(
-            "AVCPPS{ppsId=%d, spsId=%d, entropicCodingMode=%b, bottomFieldPicOrderInFramePresent=%b, numRefIdxL0DefaultActiveMinus1=%d, numRefIdxL1DefaultActiveMinus1=%d, weightedPred=%b, weightedBipredIdc=%d, picInitQp=%d, picInitQs=%d, chromaQpIndexOffset=%d, deblockingFilterControlPresent=%b, constrainedIntraPred=%b, redundantPicCntPresent=%b, transform8x8Mode=%b, secondChromaQpIndexOffset=%d}",
+            "AVCPPS{ppsId=%d, spsId=%d, entropicCodingMode=%b, bottomFieldPicOrderInFramePresent=%b, numRefIdxL0DefaultActive=%d, numRefIdxL1DefaultActive=%d, weightedPred=%b, weightedBipredIdc=%d, picInitQp=%d, picInitQs=%d, chromaQpIndexOffset=%d, deblockingFilterControlPresent=%b, constrainedIntraPred=%b, redundantPicCntPresent=%b, transform8x8Mode=%b, secondChromaQpIndexOffset=%d}",
             this.ppsId,
             this.spsId,
             this.entropicCodingMode,
             this.bottomFieldPicOrderInFramePresent,
-            this.numRefIdxL0DefaultActiveMinus1,
-            this.numRefIdxL1DefaultActiveMinus1,
+            this.numRefIdxL0DefaultActive,
+            this.numRefIdxL1DefaultActive,
             this.weightedPred,
             this.weightedBipredIdc,
-            this.picInitQpMinus26 + 26,
-            this.picInitQsMinus26 + 26,
+            this.picInitQp,
+            this.picInitQs,
             this.chromaQpIndexOffset,
             this.deblockingFilterControlPresent,
             this.constrainedIntraPred,

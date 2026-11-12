@@ -12,9 +12,9 @@ public record HEVCPPS(
     int numExtraSliceHeaderBits,
     boolean signDataHidingEnabled,
     boolean cabacInitPresent,
-    int numRefIdxL0DefaultActiveMinus1,
-    int numRefIdxL1DefaultActiveMinus1,
-    int initQpMinus26,
+    int numRefIdxL0DefaultActive,
+    int numRefIdxL1DefaultActive,
+    int initQp,
     boolean constrainedIntraPred,
     boolean transformSkipEnabled,
     boolean cuQpDeltaEnabled,
@@ -38,9 +38,9 @@ public record HEVCPPS(
         int numExtraSliceHeaderBits = (int) b.u(3);
         boolean signDataHidingEnabled = b.bit() == 1;
         boolean cabacInitPresent = b.bit() == 1;
-        int numRefIdxL0DefaultActiveMinus1 = b.ue();
-        int numRefIdxL1DefaultActiveMinus1 = b.ue();
-        int initQpMinus26 = b.se();
+        int numRefIdxL0DefaultActive = b.ue() + 1;
+        int numRefIdxL1DefaultActive = b.ue() + 1;
+        int initQp = b.se() + 26;
         boolean constrainedIntraPred = b.bit() == 1;
         boolean transformSkipEnabled = b.bit() == 1;
 
@@ -110,9 +110,9 @@ public record HEVCPPS(
             numExtraSliceHeaderBits,
             signDataHidingEnabled,
             cabacInitPresent,
-            numRefIdxL0DefaultActiveMinus1,
-            numRefIdxL1DefaultActiveMinus1,
-            initQpMinus26,
+            numRefIdxL0DefaultActive,
+            numRefIdxL1DefaultActive,
+            initQp,
             constrainedIntraPred,
             transformSkipEnabled,
             cuQpDeltaEnabled,
@@ -124,7 +124,7 @@ public record HEVCPPS(
     @Override
     public String toString() {
         return String.format(
-            "HEVCPPS{ppsId=%d, spsId=%d, dependentSliceSegmentsEnabled=%b, outputFlagPresent=%b, numExtraSliceHeaderBits=%d, signDataHidingEnabled=%b, cabacInitPresent=%b, numRefIdxL0DefaultActiveMinus1=%d, numRefIdxL1DefaultActiveMinus1=%d, initQpMinus26=%d, constrainedIntraPred=%b, transformSkipEnabled=%b, cuQpDeltaEnabled=%b, ppsCbQpOffset=%d, ppsCrQpOffset=%d}",
+            "HEVCPPS{ppsId=%d, spsId=%d, dependentSliceSegmentsEnabled=%b, outputFlagPresent=%b, numExtraSliceHeaderBits=%d, signDataHidingEnabled=%b, cabacInitPresent=%b, numRefIdxL0DefaultActive=%d, numRefIdxL1DefaultActive=%d, initQp=%d, constrainedIntraPred=%b, transformSkipEnabled=%b, cuQpDeltaEnabled=%b, ppsCbQpOffset=%d, ppsCrQpOffset=%d}",
             this.ppsId,
             this.spsId,
             this.dependentSliceSegmentsEnabled,
@@ -132,9 +132,9 @@ public record HEVCPPS(
             this.numExtraSliceHeaderBits,
             this.signDataHidingEnabled,
             this.cabacInitPresent,
-            this.numRefIdxL0DefaultActiveMinus1,
-            this.numRefIdxL1DefaultActiveMinus1,
-            this.initQpMinus26,
+            this.numRefIdxL0DefaultActive,
+            this.numRefIdxL1DefaultActive,
+            this.initQp,
             this.constrainedIntraPred,
             this.transformSkipEnabled,
             this.cuQpDeltaEnabled,

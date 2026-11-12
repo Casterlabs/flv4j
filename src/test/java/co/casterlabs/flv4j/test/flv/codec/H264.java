@@ -81,7 +81,7 @@ public class H264 {
                     assertEquals(100, record.profileIndication()); // High
                     assertEquals(0, record.profileCompatibility());
                     assertEquals(12, record.levelIndication()); // level 1.2 (level_idc 12)
-                    assertEquals(3, record.lengthSizeMinusOne());
+                    assertEquals(4, record.lengthSize());
                     assertEquals(1, record.numOfSPS());
                     assertEquals(1, record.numOfPPS());
 
@@ -94,11 +94,11 @@ public class H264 {
                     assertEquals(12, sps.levelIdc());
                     assertEquals(0, sps.spsId());
                     assertEquals(1, sps.chromaFormatIdc()); // 4:2:0
-                    assertEquals(0, sps.bitDepthLumaMinus8());
-                    assertEquals(0, sps.bitDepthChromaMinus8());
+                    assertEquals(8, sps.bitDepthLuma());
+                    assertEquals(8, sps.bitDepthChroma());
                     assertEquals(4, sps.maxNumRefFrames());
-                    assertEquals(19, sps.picWidthInMbsMinus1());
-                    assertEquals(11, sps.picHeightInMapUnitsMinus1());
+                    assertEquals(20, sps.picWidthInMbs());
+                    assertEquals(12, sps.picHeightInMapUnits());
                     assertTrue(sps.frameMbsOnly());
                     assertEquals(320, sps.codedWidth());
                     assertEquals(192, sps.codedHeight()); // crop bottom 6 (chroma) = 12 luma rows
@@ -122,12 +122,12 @@ public class H264 {
                     assertEquals(0, pps.spsId());
                     assertTrue(pps.entropicCodingMode()); // CABAC
                     assertFalse(pps.bottomFieldPicOrderInFramePresent());
-                    assertEquals(2, pps.numRefIdxL0DefaultActiveMinus1());
-                    assertEquals(0, pps.numRefIdxL1DefaultActiveMinus1());
+                    assertEquals(3, pps.numRefIdxL0DefaultActive());
+                    assertEquals(1, pps.numRefIdxL1DefaultActive());
                     assertTrue(pps.weightedPred());
                     assertEquals(2, pps.weightedBipredIdc());
-                    assertEquals(-3, pps.picInitQpMinus26()); // qp 23
-                    assertEquals(0, pps.picInitQsMinus26()); // qp 26
+                    assertEquals(23, pps.picInitQp());
+                    assertEquals(26, pps.picInitQs());
                     assertEquals(-2, pps.chromaQpIndexOffset());
                     assertTrue(pps.deblockingFilterControlPresent());
                     assertFalse(pps.constrainedIntraPred());
